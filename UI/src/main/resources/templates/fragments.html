@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    </head>
+<body>
+<!---------------------------------- NAVBAR ------------------------->
+    <nav th:fragment="navbar" class="navbar">
+        <a th:href="@{/}" class="logo">Ecommerce</a>
+        <input class="menu-btn" type="checkbox" id="menu-btn" />
+        <label class="menu-icon" for="menu-btn"><span class="nav-icon"></span></label>
+        <ul class="menu">
+            <li><a th:href="@{/}">Home</a></li>
+            <li class="list-dropdown">
+                <div class="dropdown">
+                    <div class="dropbtn-container">
+                        <button class="dropbtn">Categories
+                            <i class="fa fa-caret-down"></i>
+                        </button>
+                    </div>
+                    <div class="dropdown-content">
+                        <a href="#">Fruit & Produce</a>
+                    </div>
+                 </div>
+            </li>
+            <li class="list-dropdown">
+                <div class="dropdown">
+                    <div class="dropbtn-container">
+                        <button class="dropbtn">Account
+                            <i class="fa fa-caret-down"></i>
+                        </button>
+                    </div>
+                    <div class="dropdown-content">
+                        <a th:href="@{/profile}">Profile</a>
+                        <a sec:authorize="!isAuthenticated()" th:href="@{/oauth2/authorization/auth0}">Login</a>
+                        <a sec:authorize="isAuthenticated()" th:href="@{/logout}">Logout</a>
+                    </div>
+                </div>
+            </li>
+            <li><a th:href="@{/shoppingCart}"><i class="fa fa-shopping-cart" style="font-size:24px"></i></a></li>
+        </ul>
+    </nav>
+<!---------------------------------- PRODUCT CATALOG ------------------------->
+    <tr th:fragment="product-catalog-row">
+        <td  th:each="i: ${#numbers.sequence(0, 3)}" th:include="fragments :: product-overview"></td>
+    </tr>
+
+    <a th:href="@{|/product/${product.getName()}|}" th:fragment="product-overview">
+        <li>
+            <img th:src="${product.getImageUrl()}" th:alt="${product.getName()}">
+            <h3 th:text="${#numbers.formatCurrency(product.getPrice())}" ></h3>
+            <p th:text="${product.getName()}"></p>
+        </li>
+    </a>
+<!---------------------------------- SHOPPING CART ITEM ------------------------->
+    <li th:fragment="shopping-cart-item" class="shopping-cart-item">
+        <img th:src="${cartItem.getProductImageUrl()}" th:alt="${cartItem.getProductName()}">
+        <h3 th:text="${cartItem.getProductName()}"></h3>
+<!--        <p th:text="${cartItem.getDesc}"></p>-->
+        <h3 th:text="|${#numbers.formatCurrency(cartItem.getProductPrice())} x${cartItem.getQuantity()}|"></h3>
+        <button type="submit" form="remove-from-cart"><span class="remove-item-icon"></span></button>
+        <form th:action="@{/shoppingCart}" method="POST" th:object="${cartItem}" id="remove-from-cart">
+            <input type="hidden" th:value="${cartItem.getId()}" name="id">
+            <input type="hidden" th:value="${cartItem.getUserId()}" name="userId">
+            <input type="hidden" th:value="${cartItem.getQuantity()}" name="quantity">
+            <input type="hidden" th:value="${cartItem.getProductId()}" name="productId">
+            <input type="hidden" th:value="${cartItem.getProductName()}" name="productName">
+            <input type="hidden" th:value="${cartItem.getProductImageUrl()}" name="productImageUrl">
+            <input type="hidden" th:value="${cartItem.getProductPrice()}" name="productP">
+        </form>
+        <div></div>
+    </li>
+
+
+<script th:src="@{/js/script.js}"></script>
+</body>
+</html>

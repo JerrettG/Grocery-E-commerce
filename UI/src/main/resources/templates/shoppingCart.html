@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shopping Cart</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    <th:body th:replace="fragments :: navbar"></th:body>
+
+    <section>
+        <div class="shopping-cart">
+            <div class="shopping-cart-heading">
+                <h1>Shopping cart</h1>
+            </div>
+            <ul class="shopping-cart-item-container">
+                <th:block th:each="cartItem : ${cart.getCartItems()}" th:insert="fragments :: shopping-cart-item"></th:block>
+            </ul>
+            <h2>Subtotal</h2>
+            <h3 th:text="${#numbers.formatCurrency(cart.getSubtotal())}"></h3>
+        </div>
+    </section>
+    <a th:href="@{/checkout}">Checkout</a>
+</body>
+</html>

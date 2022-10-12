@@ -1,0 +1,439 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+body {
+    margin:0;
+    font-family: 'Open Sans', sans-serif;
+    background: white;
+}
+
+a {
+    color: #000;
+}
+
+section {
+    padding-top: 6em;
+    padding-bottom: 6em;
+    margin-bottom: 6em;
+}
+
+.navbar {
+    background-color: #fff;
+    box-shadow: 1px 1px 4px 0 rgba(0,0,0,0.5);
+    position: fixed;
+    width: 100%;
+    z-index: 3;
+}
+
+.navbar ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow: hidden;
+    background-color: #fff;
+}
+.navbar ul li {
+    display: block;
+}
+
+.navbar ul li a, .navbar ul li .dropdown {
+    display: block;
+    padding: 20px;
+    text-decoration: none;
+}
+
+.navbar ul .list-dropdown, .navbar ul li .dropdown {
+    padding: 0;
+}
+
+.navbar ul li a:hover, .dropdown:hover {
+    background-color: #ddd;
+}
+
+.navbar .logo {
+    float: left;
+    display: block;
+    font-size:2em;
+    padding: 10px 20px;
+}
+
+.navbar .menu {
+    clear: both;
+    max-height: 0;
+    transition: max-height 0.4s ease-out;
+}
+
+
+.navbar .menu-icon {
+    padding: 28px 20px;
+    position: relative;
+    float: right;
+    cursor: pointer;
+}
+
+.navbar .menu-icon .nav-icon {
+    background: #333;
+    display: block;
+    height: 2px;
+    width: 18px;
+    position: relative;
+    transition: background 0.2s ease-out;
+}
+
+.navbar .menu-icon .nav-icon:before {
+    background: #333;
+    content:"";
+    display: block;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    transition: all 0.2s ease-out;
+    top:5px;
+}
+
+.navbar .menu-icon .nav-icon:after {
+    background: #333;
+    content:"";
+    display: block;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    transition: all .2s ease-out;
+    top: -5px;
+}
+
+.navbar .menu-btn {
+    display: none;
+}
+
+.navbar .menu-btn:checked ~ .menu {
+    max-height:240px;
+}
+
+.navbar .menu-btn:checked ~ .menu-icon .nav-icon {
+    background: transparent;
+}
+
+.navbar .menu-btn:checked ~ .menu-icon .nav-icon:before {
+    transform: rotate(-45deg);
+    top: 0;
+}
+
+.navbar .menu-btn:checked ~ .menu-icon .nav-icon:after {
+    transform: rotate(45deg);
+    top: 0;
+}
+.dropdown {
+    /*padding: 20px;*/
+    /*float: left;*/
+    /*overflow: hidden;*/
+}
+
+.dropdown .dropbtn-container .dropbtn {
+    font-size: 16px;
+    border: none;
+    outline: none;
+    color: black;
+    background-color: inherit;
+    font-family: inherit;
+    margin: auto;
+}
+.dropdown .dropbtn-container {
+    padding: 20px;
+}
+
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    float: none;
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+
+.dropdown-content a:hover {
+    background-color: #ddd;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown .fa-caret-down {
+    visibility: hidden;
+}
+
+@media (min-width:48em) {
+
+    .navbar li {
+        float: left;
+        /*border-right: 1px solid #aaa;*/
+    }
+    .navbar li a,  .navbar li .dropdown {
+        padding:20px 30px;
+    }
+    .navbar .menu {
+        clear: none;
+        float: right;
+        max-height: none;
+    }
+    .navbar .menu-icon {
+        display: none;
+    }
+    .dropdown .fa-caret-down {
+        visibility: visible;
+    }
+}
+
+
+
+
+.new-products {
+    margin:0;
+    padding:5em;
+}
+.new-products .product-catalog  {
+    margin: 0;
+    padding-left: 0;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.new-products .product-catalog a{
+    margin: 5px;
+    padding: 5px;
+    background: white;
+    display: block;
+    list-style: none;
+    width: 200px;
+    height: 200px;
+    float:left;
+    border-radius: 10%;
+    box-shadow: 1px 1px 4px 0 rgba(0,0,0,0.5);
+    text-align: center;
+    text-decoration: none;
+}
+
+.new-products .product-catalog a:hover {
+    box-shadow: 1px 1px 5px 4px rgb(98, 218, 239);
+    transition: all 0.2s ease-out;
+}
+
+
+.new-products .product-catalog a li img {
+    width: 100px;
+    height: 100px;
+    border-radius: 10%;
+}
+
+.new-products .product-catalog a li p{
+    margin: 0;
+    padding-left: 5px;
+    text-align: left;
+}
+
+.new-products .product-catalog a li h3 {
+    margin: auto 0 ;
+    padding-left: 5px;
+    padding-bottom: 1px;
+    text-align: left;
+}
+
+/************************* SHOPPING CART ****************/
+
+.shopping-cart {
+    margin: 0 10%;
+    width: 80%;
+    background: white;
+    box-shadow: 1px 1px 5px 0 rgba(0, 0, 0, 0.7);
+    list-style: none;
+    flex-wrap: wrap;
+    border-radius: 20px;
+}
+
+.shopping-cart .shopping-cart-heading {
+    margin: auto;
+    width: 90%;
+    height: 15%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.shopping-cart .shopping-cart-heading h1 {
+    font-size: 20px;
+    font-family: ‘Open Sans’, sans-serif;
+    font-weight: 700;
+    color: #2F3841;
+}
+.shopping-cart .shopping-cart-item-container {
+    margin: 0;
+    padding: 0 2em;
+}
+.shopping-cart h2 {
+    padding: 5px 2em;
+    margin: 0;
+}
+.shopping-cart h3 {
+    margin:0;
+    padding: 0 2.5em 10px;
+}
+
+.shopping-cart .shopping-cart-item-container .shopping-cart-item {
+    padding: 2em 1em;
+    /*border-bottom: solid gray;*/
+    display: block;
+}
+.shopping-cart .shopping-cart-item-container .shopping-cart-item p {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.shopping-cart .shopping-cart-item-container .shopping-cart-item h3 {
+    position: relative;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.shopping-cart .shopping-cart-item-container .shopping-cart-item img {
+    width: 100px;
+    height: 100px;
+    display: block;
+    position: relative;
+    float:left;
+
+}
+.shopping-cart .shopping-cart-item-container .shopping-cart-item div {
+    width: 100%;
+    height: 2px;
+    background: gray;
+    clear: left;
+}
+
+.shopping-cart .shopping-cart-item-container .shopping-cart-item button {
+    float: right;
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin: auto;
+}
+
+.shopping-cart .shopping-cart-item-container .shopping-cart-item button span:after {
+    background: rgb(253, 70, 70);
+    content: "";
+    display: block;
+    height: 2px;
+    width: 18px;
+    position: absolute;
+    transform: rotate(-45deg);
+}
+.shopping-cart .shopping-cart-item-container .shopping-cart-item button span:before {
+    background: rgb(253, 70, 70);
+    content: "";
+    display: block;
+    height: 2px;
+    width: 18px;
+    position: absolute;
+    transform: rotate(45deg);
+}
+
+/************* SALES BANNER ********/
+.sale-banner {
+    padding-bottom: 0;
+}
+.sale-banner img {
+    width: 100%;
+}
+
+
+/************* PRODUCT PAGE *********/
+.product-image-container {
+    padding: 3em;
+    display: flex;
+    position: relative;
+    float: left;
+    height: 200px;
+    width: 200px;
+}
+.product-image-container img {
+    width: 100%;
+    height: 100%;
+}
+.product-info {
+    border: solid black;
+    border-radius: 1em;
+    padding: 3em;
+    display: block;
+    position: relative;
+    float: left;
+}
+.add-to-cart{
+    margin: 1em;
+    display: block;
+    position: relative;
+    float: left;
+    border: solid black;
+    border-radius: 1em;
+    padding: 2em;
+}
+.add-to-cart #quantity-selector {
+    display: block;
+    position: relative;
+    float: left;
+}
+
+.add-to-cart .add_to_cart_button {
+    display: block;
+    position: relative;
+    float: left;
+    width: 150px;
+    height: 50px;
+    font-size: 20px;
+    color: white;
+    border: none;
+    border-radius: 1em;
+    background: darkgreen;
+    transition: all 0.5s ease;
+    cursor: pointer;
+}
+.add-to-cart .add_to_cart_button:hover {
+    background: lightgreen;
+}
+
+.recommended-products {
+    clear: left;
+}
+/************************ Profile *********************/
+.account-section {
+    padding-left: 4em;
+    padding-right: 4em;
+    padding-bottom: 3em;
+    margin-bottom: 0;
+}
+.account-details {
+    padding: 4em;
+    width: 400px;
+    height: 400px;
+    border: solid black;
+    border-radius: 5%;
+}
+
+/************************ Order **********************/
+.orders-section {
+    padding: 3em 4em;
+}
+
+.orders {
+    padding: 4em;
+    min-width: 400px;
+    min-height: 200px;
+    border: solid black;
+    box-shadow: 1px 1px 5px 0 rgba(31, 31, 31, 0.7);
+}

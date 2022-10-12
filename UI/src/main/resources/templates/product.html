@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Overview</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    <th:body th:replace="fragments :: navbar"></th:body>
+
+    <section>
+        <div class="product-image-container">
+            <img th:src="${product.getImageUrl()}" th:alt="${product.getName()}">
+        </div>
+        <div class="product-info">
+            <h1 th:text="${product.getName()}"></h1>
+            <h3>Details</h3>
+            <p th:text="${product.getDescription()}">Delicious red apple full of nutrients to keep yourself healthy and promote long term health.</p>
+        </div>
+        <div class="add-to-cart">
+            <form th:action="@{|/product/${product.getName()}/addToCart|}" method="POST" th:object="${cartItem}" id="add-to-cart">
+                <select id="quantity-selector" name="quantity" class="dropdown-selector" form="add-to-cart">
+                    <option value=1>1</option>
+                    <option value=2>2</option>
+                    <option value=3>3</option>
+                    <option value=4>4</option>
+                    <option value=5>5</option>
+                    <option value=6>6</option>
+                    <option value=7>7</option>
+                    <option value=8>8</option>
+                    <option value=9>9</option>
+                </select>
+                <input type="hidden" th:value="${product.getProductId()}" name="productId">
+                <input type="hidden" th:value="${product.getName()}" name="productName">
+                <input type="hidden" th:value="${product.getPrice()}" name="productPrice">
+                <input type="hidden"th:value="${product.getImageUrl()}" name="productImageUrl">
+            </form>
+            <button class="add_to_cart_button" type="submit" form="add-to-cart">Add to cart</button>
+        </div>
+    </section>
+    <section class="recommended-products">
+        <h1>Placeholder for recommended products</h1>
+    </section>
+</body>
+</html>

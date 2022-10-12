@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    <nav th:replace="fragments :: navbar"></nav>
+
+    <section class="sale-banner">
+        <img th:src="@{images/sales_banner.png}">
+    </section>
+    <section class="new-products">
+
+        <h1>All Products</h1>
+
+        <ul class="product-catalog">
+                <th:block th:each="product: ${products}" th:insert="fragments :: product-overview"></th:block>
+        </ul>
+    </section>
+</body>
+</html>
