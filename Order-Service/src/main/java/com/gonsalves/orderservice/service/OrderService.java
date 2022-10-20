@@ -1,10 +1,10 @@
 package com.gonsalves.orderservice.service;
 
 import com.gonsalves.orderservice.entity.Order;
+import com.gonsalves.orderservice.exception.OrderAlreadyExistsException;
 import com.gonsalves.orderservice.exception.OrderNotFoundException;
 import com.gonsalves.orderservice.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,20 +25,25 @@ public class OrderService {
             throw new OrderNotFoundException("Order with order id could not be found.");
         return order;
     }
-
     public void createOrder(Order order) {
-     orderRepository.createOrder(order);
+        if (order.getId().isEmpty() || order.getCreatedDate().toString().isEmpty()) {
+            order.setId(null);
+            order.setCreatedDate(null);
+        }
+        List<Order> resource = orderRepository.getOrderByPaymentIntentId(order.getUserId(), order.getPaymentIntentId());
+        if (resource.size() > 0)
+            throw new OrderAlreadyExistsException("Cannot create order. Order already created for this transaction.");
+        orderRepository.createOrder(order);
     }
 
     public void updateOrder(Order order) {
-//        orderRepository.getOrderByOrderId(order.getId());
+        getOrderByOrderId(order.getId(), order.getUserId());
 
         orderRepository.updateOrder(order);
     }
 
     public void deleteOrder(Order order) {
-//        orderRepository.getOrderByOrderId(order.getId());
-
+        getOrderByOrderId(order.getId(), order.getUserId());
         orderRepository.deleteOrder(order);
     }
 

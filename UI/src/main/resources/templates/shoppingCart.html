@@ -16,12 +16,27 @@
                 <h1>Shopping cart</h1>
             </div>
             <ul class="shopping-cart-item-container">
-                <th:block th:each="cartItem : ${cart.getCartItems()}" th:insert="fragments :: shopping-cart-item"></th:block>
+                <li th:if="${error}"><h1>Uh oh! There was an issue loading your cart!</h1></li>
+                <li th:if="not ${error} and ${cart.getCartItems().isEmpty()}"><h1>Your shopping cart is empty</h1></li>
+                <th:block th:unless="not ${error} and ${cart.getCartItems().isEmpty()}" th:each="cartItem : ${cart.getCartItems()}" th:insert="fragments :: shopping-cart-item"></th:block>
             </ul>
             <h2>Subtotal</h2>
-            <h3 th:text="${#numbers.formatCurrency(cart.getSubtotal())}"></h3>
+            <h3 th:text="${error} ? 0.00 :${#numbers.formatCurrency(cart.getSubtotal())}"></h3>
         </div>
     </section>
-    <a th:href="@{/checkout}">Checkout</a>
+    <form th:action="@{/checkout}" method="POST" id="checkout">
+        <input type="hidden" name="cartString" id="cart">
+    </form>
+    <button th:if="not ${error} and not ${cart.getCartItems().isEmpty()}"onclick="checkout(cart)">Checkout</button>
 </body>
+
+<script th:inline="javascript">
+    const cart = /*[[${cart}]]*/ '';
+</script>
+<script th:inline="javascript">
+    function checkout(cart) {
+        document.getElementById("cart").value=JSON.stringify(cart);
+        document.getElementById("checkout").submit();
+    }
+</script>
 </html>

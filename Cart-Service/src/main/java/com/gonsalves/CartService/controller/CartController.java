@@ -3,10 +3,8 @@ package com.gonsalves.CartService.controller;
 import com.gonsalves.CartService.entity.Cart;
 import com.gonsalves.CartService.entity.CartItem;
 import com.gonsalves.CartService.service.CartService;
-import com.gonsalves.ProductService.entity.Product;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,16 +27,13 @@ public class CartController {
         return new ResponseEntity<>(cart, HttpStatus.OK);
     }
 
-    @PostMapping(path = "/cartItem", consumes = "application/xml;charset=UTF-8", produces = "application/xml;charset=UTF-8")
+    @PostMapping(path = "/cartItem")
     public @ResponseBody ResponseEntity<String> addCartItem(@RequestBody CartItem cartItem) {
         //DynamoDB will not autogenerate hash key if it is not null
-        if (cartItem.getId().isEmpty()) cartItem.setId(null);
-        try {
-            cartService.addItemToCart(cartItem);
-            return new ResponseEntity<>("Adding item to cart was successful.", HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Error adding item to cart.", HttpStatus.CONFLICT);
-        }
+        if (cartItem.getId() != null)
+            cartItem.setId(null);
+        cartService.addItemToCart(cartItem);
+        return new ResponseEntity<>("Adding item to cart was successful.", HttpStatus.CREATED);
     }
 
     @PutMapping("/cartItem")
@@ -51,5 +46,10 @@ public class CartController {
     public ResponseEntity<String> removeItem(@RequestBody CartItem cartItem) {
         cartService.removeItemFromCart(cartItem);
         return new ResponseEntity<>("Item removed from cart successfully.", HttpStatus.OK);
+    }
+    @DeleteMapping("/cart")
+    public ResponseEntity<String> clearCart(@RequestParam("userId") String userId) {
+        cartService.clearCart(userId);
+        return new ResponseEntity<>("Cart cleared successfully.", HttpStatus.OK);
     }
 }

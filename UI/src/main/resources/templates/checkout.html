@@ -8,17 +8,6 @@
     <link rel="stylesheet" th:href="@{/css/checkout.css}"/>
     <link th:href="@{/css/style.css}" rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <script src="https://js.stripe.com/v3/"></script>
-    <script th:src="@{/js/checkout.js}" defer></script>
-    <script th:inline="javascript">
-        var stripePublicKey = /*[[${stripePublicKey}]]*/ null;
-    </script>
-    <script th:inline="javascript">
-        var csrf = /*[[${csrf}]]*/ 'default';
-    </script>
-    <script th:inline="javascript">
-        const items = /*[[${cartItems}]]*/ [];
-    </script>
 </head>
 <body>
     <nav th:replace="fragments :: navbar"></nav>
@@ -34,4 +23,13 @@
         <div id="payment-message" class="hidden"></div>
     </form>
 </body>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script th:src="@{/js/checkout.js}" defer></script>
+<script th:inline="javascript">
+    var stripePublicKey = /*[[${stripePublicKey}]]*/ null;
+    var csrf = /*[[${csrf}]]*/ 'default';
+    const items = /*[[${cartItems}]]*/ [];
+    const customerId = /*[[${customerId}]]*/ '';
+</script>
 </html>

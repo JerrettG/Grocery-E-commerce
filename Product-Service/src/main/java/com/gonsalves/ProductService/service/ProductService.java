@@ -38,18 +38,14 @@ public class ProductService {
                 log.info(String.format("Created product with name: %s", productName));
             }
     }
-    public boolean updateProduct(Product product) {
-        try {
+    public void updateProduct(Product product) {
+            loadProductWithProductName(product.getName());
+
             productRepository.update(product);
             log.info(String.format("Resource with name: %s has been updated.", product.getName()));
-            return true;
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            return false;
-        }
     }
 
-    public void delete(String name) {
+    public void deleteProduct(String name) {
             Product product = loadProductWithProductName(name);
             productRepository.delete(product);
             log.info(String.format("Resource with name: %s has been successfully deleted.", product.getName()));

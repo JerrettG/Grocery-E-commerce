@@ -26,6 +26,7 @@ public class WebSecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeRequests().antMatchers("/images/**","/css/**","/js/**").permitAll();
+        http.csrf().ignoringAntMatchers("/stripe/events");
         return http
                 .authorizeRequests()
                 .mvcMatchers(WHITE_LIST_URLS).permitAll()

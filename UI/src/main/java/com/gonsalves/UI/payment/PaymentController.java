@@ -1,24 +1,34 @@
 package com.gonsalves.UI.payment;
 
-import com.gonsalves.CartService.entity.CartItem;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gonsalves.UI.model.CartItem;
+import com.gonsalves.UI.model.CartItemConverter;
+import com.gonsalves.UI.model.CreatePayment;
+import com.gonsalves.UI.model.CreatePaymentResponse;
+import com.gonsalves.UI.model.Order;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.param.PaymentIntentCreateParams;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
+import java.util.List;
 
 @RestController
 @RequestMapping("/payment")
 public class PaymentController {
 
     @PostMapping("/create-payment-intent")
-    public @ResponseBody CreatePaymentResponse createPaymentIntent(@RequestBody CreatePayment createPayment) throws StripeException {
+    public @ResponseBody CreatePaymentResponse createPaymentIntent(@RequestBody CreatePayment createPayment, @RequestParam String customerId) throws StripeException, JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        Order order = CartItemConverter.convert(createPayment.getItems(), customerId);
+        order.calculateAndSetOrderTotal();
+        String json = mapper.writeValueAsString(order);
 
         PaymentIntentCreateParams params =
                 PaymentIntentCreateParams.builder()
                         .setAmount(calculateOrderAmount(createPayment.getItems()))
+                        .setDescription(json)
                         .setCurrency("usd")
                         .build();
 
@@ -28,8 +38,7 @@ public class PaymentController {
 
     }
 
-    private long calculateOrderAmount(CartItem[] items) {
-        CartItem[] cartItems = items;
+    private long calculateOrderAmount(List<CartItem> cartItems) {
         long total =0;
         for (CartItem item : cartItems)  total+= ( (item.getProductPrice()*100) * item.getQuantity() );
         return total;

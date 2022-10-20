@@ -2,7 +2,6 @@ package com.gonsalves.CartService.service;
 
 import com.gonsalves.CartService.entity.CartItem;
 import com.gonsalves.CartService.repository.CartRepository;
-import com.gonsalves.ProductService.entity.Product;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,7 +18,6 @@ public class CartService {
 
     public void addItemToCart(CartItem cartItem) {
         CartItem existingItem = loadItem(cartItem.getUserId(), cartItem.getProductId());
-        //TODO fix the loadItem check to see if item exists in the cart because it will always increment
         if (Objects.nonNull(existingItem)) {
             existingItem.incrementItemQuantity(cartItem.getQuantity());
             cartRepository.updateCartItem(existingItem);
@@ -50,5 +48,9 @@ public class CartService {
     public void removeItemFromCart(CartItem cartItem) {
         cartRepository.removeItem(cartItem);
         log.info(String.format("Removal of item with name %s successful.", cartItem.getProductName()));
+    }
+
+    public void clearCart(String userId) {
+        cartRepository.clearCart(userId);
     }
 }

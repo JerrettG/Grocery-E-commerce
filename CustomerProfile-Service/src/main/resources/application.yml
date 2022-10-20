@@ -3,14 +3,16 @@ server:
 
 spring:
   application:
-    name: "CUSTOMER_PROFILE_SERVICE"
+    name: CUSTOMER-PROFILE-SERVICE
+  zipkin:
+    base-url: http://127.0.0.1:9411/
 
 eureka:
   instance:
-    hostname: ${vcap.application.uris[0]:localhost}
+    hostname: localhost
     prefer-ip-address: true
     lease-renewal-interval-in-seconds: 10
     lease-expiration-duration-in-seconds: 20
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}

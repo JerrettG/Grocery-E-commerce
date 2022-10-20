@@ -10,39 +10,25 @@
     <nav th:replace="fragments :: navbar"></nav>
 
     <section class="account-section">
-        <h2>Account Details</h2>
         <div class="account-details">
-            <h4>Email</h4>
-            <p th:text="${profile.getEmail()}"></p>
-            <h4>First Name</h4>
-            <p th:text="${profile.getFirstName()}"></p>
-            <h4>Last Name</h4>
-            <p th:text="${profile.getLastName()}"></p>
-            <h4>Preferred Shipping Address</h4>
-            <p th:text="${profile.getShippingAddress()}"></p>
+            <h2>Account Details</h2>
+            <div class="account-info">
+                <h4>Email</h4>
+                <p th:text="${profile.getEmail()}" id="account-email"></p>
+                <h4>First Name</h4>
+                <p th:text="${profile.getFirstName()}" id="account-first-name"></p>
+                <h4>Last Name</h4>
+                <p th:text="${profile.getLastName()}" id="account-last-name"></p>
+                <h4>Preferred Shipping Address</h4>
+                <p th:text="${profile.getShippingAddress()}" id="account-shipping-address"></p>
+            </div>
         </div>
     </section>
-    <section class="orders-section">
-        <h2>Your orders</h2>
-        <div class="orders">
-            <label th:text="|Order Number:${orders.get(0).getId()}|"></label>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Product name</th>
-                        <th>Quantity</th>
-                        <th>Unit price</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="orderItem : ${orders.get(0).getOrderItems()}">
-                        <td th:text="${orderItem.getItemName()}"></td>
-                        <td th:text="${orderItem.getQuantity()}"></td>
-                        <td th:text="${#numbers.formatCurrency(orderItem.getUnitPrice())}"></td>
-                    </tr>
-                </tbody>
-            </table>
+    <div class="orders-section">
+        <div class="orders-container">
+            <h2>Your orders at a glance</h2>
+            <th:block th:each="order: ${orders}" th:insert="fragments :: order"></th:block>
         </div>
-    </section>
+    </div>
 </body>
 </html>

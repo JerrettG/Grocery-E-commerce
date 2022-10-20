@@ -20,8 +20,9 @@
                             <i class="fa fa-caret-down"></i>
                         </button>
                     </div>
+                    <p class="navbar-link-header">Categories</p>
                     <div class="dropdown-content">
-                        <a href="#">Fruit & Produce</a>
+                        <a class="dropdown-links" href="#">Fruit & Produce</a>
                     </div>
                  </div>
             </li>
@@ -33,15 +34,19 @@
                         </button>
                     </div>
                     <div class="dropdown-content">
-                        <a th:href="@{/profile}">Profile</a>
-                        <a sec:authorize="!isAuthenticated()" th:href="@{/oauth2/authorization/auth0}">Login</a>
-                        <a sec:authorize="isAuthenticated()" th:href="@{/logout}">Logout</a>
+                        <p class="navbar-link-header">Account</p>
+                        <a class="dropdown-links" th:href="@{/profile}">Profile</a>
+                        <a class="dropdown-links" sec:authorize="!isAuthenticated()" th:href="@{/oauth2/authorization/auth0}">Login</a>
+                        <a class="dropdown-links" sec:authorize="isAuthenticated()" th:href="@{/logout}">Logout</a>
                     </div>
                 </div>
             </li>
-            <li><a th:href="@{/shoppingCart}"><i class="fa fa-shopping-cart" style="font-size:24px"></i></a></li>
+            <li><a id="cart-link" th:href="@{/shoppingCart}"><i class="fa fa-shopping-cart" style="font-size:24px"></i></a></li>
         </ul>
     </nav>
+
+
+
 <!---------------------------------- PRODUCT CATALOG ------------------------->
     <tr th:fragment="product-catalog-row">
         <td  th:each="i: ${#numbers.sequence(0, 3)}" th:include="fragments :: product-overview"></td>
@@ -55,24 +60,107 @@
         </li>
     </a>
 <!---------------------------------- SHOPPING CART ITEM ------------------------->
-    <li th:fragment="shopping-cart-item" class="shopping-cart-item">
-        <img th:src="${cartItem.getProductImageUrl()}" th:alt="${cartItem.getProductName()}">
-        <h3 th:text="${cartItem.getProductName()}"></h3>
-<!--        <p th:text="${cartItem.getDesc}"></p>-->
-        <h3 th:text="|${#numbers.formatCurrency(cartItem.getProductPrice())} x${cartItem.getQuantity()}|"></h3>
-        <button type="submit" form="remove-from-cart"><span class="remove-item-icon"></span></button>
-        <form th:action="@{/shoppingCart}" method="POST" th:object="${cartItem}" id="remove-from-cart">
-            <input type="hidden" th:value="${cartItem.getId()}" name="id">
-            <input type="hidden" th:value="${cartItem.getUserId()}" name="userId">
-            <input type="hidden" th:value="${cartItem.getQuantity()}" name="quantity">
-            <input type="hidden" th:value="${cartItem.getProductId()}" name="productId">
-            <input type="hidden" th:value="${cartItem.getProductName()}" name="productName">
-            <input type="hidden" th:value="${cartItem.getProductImageUrl()}" name="productImageUrl">
-            <input type="hidden" th:value="${cartItem.getProductPrice()}" name="productP">
-        </form>
-        <div></div>
+    <li th:fragment="shopping-cart-item">
+        <div class="shopping-cart-item-div">
+            <div class="order-product-image">
+                <img th:src="${cartItem.getProductImageUrl()}" th:alt="${cartItem.getProductName()}">
+            </div>
+            <div class="order-product-name">
+                <span><a th:href="@{|/product/${cartItem.getProductName()}|}" th:text="${cartItem.getProductName()}"></a></span>
+            </div>
+            <div class="order-product-quantity">
+                <span th:text="|${cartItem.getQuantity()} Qty.|"></span>
+            </div>
+            <div class="order-product-unit-price">
+                <span th:text="${#numbers.formatCurrency(cartItem.getProductPrice())}"></span>
+            </div>
+<!--        -->
+<!--        <img th:src="${cartItem.getProductImageUrl()}" th:alt="${cartItem.getProductName()}">-->
+<!--        <h3 th:text="${cartItem.getProductName()}"></h3>-->
+<!--&lt;!&ndash;        <p th:text="${cartItem.getDesc}"></p>&ndash;&gt;-->
+<!--        <h3 th:text="|${#numbers.formatCurrency(cartItem.getProductPrice())} x${cartItem.getQuantity()}|"></h3>-->
+            <div class="remove-item">
+                <button class="remove-item-button" type="submit" form="remove-from-cart"><span class="remove-item-icon"></span></button>
+            </div>
+            <form th:action="@{/shoppingCart}" method="POST" th:object="${cartItem}" id="remove-from-cart">
+                <input type="hidden" th:value="${cartItem.getId()}" name="id">
+                <input type="hidden" th:value="${cartItem.getUserId()}" name="userId">
+                <input type="hidden" th:value="${cartItem.getQuantity()}" name="quantity">
+                <input type="hidden" th:value="${cartItem.getProductId()}" name="productId">
+                <input type="hidden" th:value="${cartItem.getProductName()}" name="productName">
+                <input type="hidden" th:value="${cartItem.getProductImageUrl()}" name="productImageUrl">
+                <input type="hidden" th:value="${cartItem.getProductPrice()}" name="productP">
+            </form>
+        </div>
     </li>
 
+<!------------------------------ ORDERS ----------------------------------------------->
+    <div th:fragment="order" class="order">
+        <div class="order-info">
+            <div class="info-column">
+                <div class="info-column-description">
+                    <span>Order Placed:</span>
+                </div>
+                <div class="info-column-data">
+                    <span th:text="${order.getCreatedDate()}"></span>
+                </div>
+            </div>
+            <div class="info-column">
+                <div class="info-column-description">
+                    <span>Order status:</span>
+                </div>
+                <div class="info-column-data">
+                    <span th:text="${order.getStatus()}"></span>
+                </div>
+            </div>
+            <div class="info-column">
+                <div class="info-column-description">
+                    <span>Order total:</span>
+                </div>
+                <div class="info-column-data">
+                    <span th:text="${#numbers.formatCurrency(order.getOrderTotal())}"></span>
+                </div>
+            </div>
+            <div class="info-column">
+                <div class="info-column-description">
+                    <span>Order number:</span>
+                </div>
+                <div class="info-column-data">
+                    <span th:text="${order.getId()}"></span>
+                </div>
+            </div>
+        </div>
+        <div class="order-details" th:each="item : ${order.getOrderItems()}">
+            <div class="order-product-image">
+                <img th:src="${item.getImageUrl()}" th:alt="${item.getItemName()}">
+            </div>
+            <div class="order-product-name">
+                <span><a th:href="@{|/product/${item.getItemName()}|}" th:text="${item.getItemName()}"></a></span>
+            </div>
+            <div class="order-product-quantity">
+                <span th:text="|${item.getQuantity()} Qty.|"></span>
+            </div>
+            <div class="order-product-unit-price">
+                <span th:text="${#numbers.formatCurrency(item.getUnitPrice())}"></span>
+            </div>
+<!--            <table class="order-details-table">-->
+<!--                <thead>-->
+<!--                <tr>-->
+<!--                    <th>Product name</th>-->
+<!--                    <th>Quantity</th>-->
+<!--                    <th>Unit price</th>-->
+<!--                </tr>-->
+<!--                </thead>-->
+<!--                <tbody>-->
+<!--                <tr th:each="orderItem : ${order.getOrderItems()}">-->
+<!--                    <td class="order-details-product-name" th:text="${orderItem.getItemName()}"></td>-->
+<!--                    <td th:text="${orderItem.getQuantity()}"></td>-->
+<!--                    <td th:text="${#numbers.formatCurrency(orderItem.getUnitPrice())}"></td>-->
+<!--                </tr>-->
+<!--                </tbody>-->
+<!--            </table>-->
+        </div>
+    </div>
 
 <script th:src="@{/js/script.js}"></script>
 </body>

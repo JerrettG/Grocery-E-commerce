@@ -39,6 +39,18 @@ public class ProductRepository {
         dynamoDBMapper.delete(product);
     }
     public void update(Product product) {
-        dynamoDBMapper.save(product);
+        dynamoDBMapper.save(product,
+                new DynamoDBSaveExpression()
+                        .withExpectedEntry(
+                                "id",
+                                new ExpectedAttributeValue(
+                                        new AttributeValue(product.getProductId())))
+                        .withExpectedEntry(
+                                "name",
+                                new ExpectedAttributeValue(
+                                        new AttributeValue(product.getName())
+                                )
+                        )
+        );
     }
 }

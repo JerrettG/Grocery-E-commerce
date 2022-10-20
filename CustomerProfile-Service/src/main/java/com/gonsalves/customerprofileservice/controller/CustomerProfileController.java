@@ -18,7 +18,7 @@ public class CustomerProfileController {
     @Autowired
     CustomerProfileService customerProfileService;
 
-    @GetMapping("/user/{userId}")
+    @GetMapping(value = "/user/{userId}")
     public ResponseEntity<CustomerProfile> getCustomerProfileByUserId(@PathVariable("userId") String userId) {
         try {
             CustomerProfile customerProfile = customerProfileService.loadCustomerByUserId(userId);
@@ -36,7 +36,7 @@ public class CustomerProfileController {
             customerProfileService.createCustomerProfile(profile);
             return new ResponseEntity<>("Customer profile created successfully.", HttpStatus.CREATED);
         } catch (CustomerProfileAlreadyExistsException e) {
-            return new ResponseEntity<>("Cannot create profile. Customer with userId already exists.", HttpStatus.CONFLICT);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         }
     }
 
@@ -47,7 +47,7 @@ public class CustomerProfileController {
             customerProfileService.updateCustomerProfile(profile);
             return new ResponseEntity<>("Customer profile updated successfully.", HttpStatus.ACCEPTED);
         } catch (CustomerProfileNotFoundException e) {
-            return new ResponseEntity<>("Cannot update profile. Customer specified userId does not exist.", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -57,7 +57,7 @@ public class CustomerProfileController {
             customerProfileService.deleteCustomerProfile(userId);
             return new ResponseEntity<>("Customer profile deleted successfully.", HttpStatus.ACCEPTED);
         } catch (CustomerProfileNotFoundException e) {
-            return new ResponseEntity<>("Cannot delete profile. Customer with specified userId does not exist.", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 

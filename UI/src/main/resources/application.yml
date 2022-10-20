@@ -1,6 +1,11 @@
+server:
+  port: 8084
+
 spring:
   application:
-    name: 'USER_INTERFACE'
+    name: USER-INTERFACE
+  zipkin:
+    base-url: http://127.0.0.1:9411/
   security:
     oauth2:
       client:
@@ -16,22 +21,20 @@ spring:
           auth0:
             # trailing slash is important!
             issuer-uri: https://dev-cd4uq5z8.us.auth0.com/
-stripe:
-  public:
-    key: pk_test_51Lpxs9CxL8dwOSYMcbunMozyxQMTuigezAbD8elm2KYijgm8IMqR2QhbPpgidYjdTTQdNsMQYXO0n6SGRvU8Xnnn00SCjK2c9v
-  api:
-    key: sk_test_51Lpxs9CxL8dwOSYMg2pPry1ijbuluheFO0PpUZSAWluirFCVHYc0yvJG0IQpN3qNQ6f3lV9f6ZvR8P0Vtgc2roo000RJ5BXpqm
-
-
-server:
-  port: 8084
-
 eureka:
   instance:
-    hostname: ${vcap.application.uris[0]:localhost}
+    hostname: discovery-service
     prefer-ip-address: true
     lease-renewal-interval-in-seconds: 10
     lease-expiration-duration-in-seconds: 20
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+
+stripe:
+  public:
+    key: ${STRIPE_PUBLIC_KEY}
+  api:
+    key: ${STRIPE_API_KEY}
+  webhook:
+    secret: ${STRIPE_WEBHOOK_SECRET}

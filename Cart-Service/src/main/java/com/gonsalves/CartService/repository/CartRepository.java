@@ -76,4 +76,8 @@ public class CartRepository {
     public void removeItem(CartItem cartItem) {dynamoDBMapper.delete(cartItem);
     }
 
+    public void clearCart(String userId) {
+        List<CartItem> resources = loadAllCartItems(userId);
+        dynamoDBMapper.batchDelete(resources);
+    }
 }

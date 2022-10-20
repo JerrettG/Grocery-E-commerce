@@ -31,7 +31,9 @@ function getCookie(name) {
 // Fetches a payment intent and captures the client secret
 async function initialize() {
 
-    const response = await fetch("/payment/create-payment-intent", {
+    const response = await fetch("/payment/create-payment-intent?" + new URLSearchParams({
+        customerId: customerId}),
+        {
         method: "POST",
         headers: { "Content-Type": "application/json",
                     "X-CSRF-TOKEN": csrf},
