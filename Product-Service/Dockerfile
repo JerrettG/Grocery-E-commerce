@@ -1,7 +1,14 @@
-FROM openjdk:17
+FROM openjdk:17 as buildstage
+WORKDIR /Product-Service
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+COPY src src
+RUN ./mvnw package
+COPY target/*.jar product-service.jar
 
-ARG JAR_FILE=target/*.jar
-COPY ${JAR_FILE} product-service.jar
+FROM openjdk:17
+COPY --from=buildstage /Product-Service/product-service.jar .
 ENTRYPOINT ["java","-jar","/product-service.jar"]
 
 EXPOSE 8081

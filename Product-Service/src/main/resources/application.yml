@@ -2,18 +2,18 @@ spring:
   application:
     name: PRODUCT-SERVICE
   zipkin:
-    base-url: http://127.0.0.1:9411/
+    base-url: ${ZIPKIN_SERVER_URL}
 
 server:
   port: 8081
 
 eureka:
   instance:
-    hostname: localhost
+    hostname: "${HOSTNAME}.eureka"
     prefer-ip-address: true
     lease-renewal-interval-in-seconds: 10
     lease-expiration-duration-in-seconds: 20
   client:
     service-url:
-      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+      defaultZone: ${EUREKA_SERVICE_URL}
 
