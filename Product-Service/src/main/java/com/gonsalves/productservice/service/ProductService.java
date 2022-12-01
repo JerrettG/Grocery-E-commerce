@@ -1,6 +1,7 @@
 package com.gonsalves.productservice.service;
 
 import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
+import com.gonsalves.productservice.config.CacheStore;
 import com.gonsalves.productservice.repository.entity.Category;
 
 import com.gonsalves.productservice.exception.ProductAlreadyExistsException;
@@ -18,23 +19,61 @@ import java.util.List;
 @Slf4j
 @Service
 public class ProductService {
+
+    private final ProductRepository productRepository;
+    private final CacheStore cache;
+
     @Autowired
-    private ProductRepository productRepository;
+    public ProductService(ProductRepository productRepository, CacheStore cache) {
+        this.productRepository = productRepository;
+        this.cache = cache;
+    }
+
     public Product loadProductWithProductName(String name) {
+        Product cachedProduct = cache.getByProductName(name);
+
+        if (cachedProduct != null)
+            return cachedProduct;
+
         List<ProductEntity> results = productRepository.loadProductWithProductName(name);
-        if (results.size() > 0)
-            return createProductFromEntity(results.get(0));
-        log.error("Product with specified name does not exist.");
-        throw new ProductNotFoundException("Product with specified name does not exist.");
+
+        if (results.size() > 0) {
+            Product productFromDatabase = createProductFromEntity(results.get(0));
+            cache.addByProductName(productFromDatabase.getName(), productFromDatabase);
+            return productFromDatabase;
+        }
+        else {
+            log.error("Product with specified name does not exist.");
+            throw new ProductNotFoundException("Product with specified name does not exist.");
+        }
     }
 
     public List<Product> loadAllProducts() {
-        List<ProductEntity> results = productRepository.loadAll();
-        List<Product> products = new ArrayList<>();
-        results.forEach(entity -> products.add(createProductFromEntity(entity)));
+        List<Product> cachedProducts = cache.getByCategory("ALL");
+        if (cachedProducts != null)
+            return cachedProducts;
 
-        return products;
+        List<Product> productsFromDatabase = new ArrayList<>();
+        productRepository.loadAll()
+                .forEach(entity -> productsFromDatabase.add(createProductFromEntity(entity)));
+        cache.addByCategory("ALL", productsFromDatabase);
+        return productsFromDatabase;
     }
+
+    public List<Product> loadAllProductsInCategory(String category) {
+        List<Product> cachedProducts = cache.getByCategory(category);
+        if (cachedProducts != null)
+            return cachedProducts;
+
+        List<Product> productsFromDatabase = new ArrayList<>();
+        productRepository.loadAllProductsInCategory(Category.valueOf(category)).
+                forEach(entity -> productsFromDatabase.add(createProductFromEntity(entity)));
+        cache.addByCategory(category, productsFromDatabase);
+        return productsFromDatabase;
+    }
+
+
+
 
     public void createProduct(Product product) {
         String productName = product.getName();
@@ -44,6 +83,7 @@ public class ProductService {
                 throw new ProductAlreadyExistsException("Cannot create resource. Product with specified name already exists.");
             } catch (ProductNotFoundException e) {
                 productRepository.create(createEntityFromProduct(product));
+                cache.evictByCategory(product.getCategory());
                 log.info(String.format("Created Product with name: %s", productName));
             }
     }
@@ -51,6 +91,8 @@ public class ProductService {
             ProductEntity entity = createEntityFromProduct(product);
             try {
                 productRepository.update(entity);
+                cache.evictByProductName(product.getName());
+                cache.evictByCategory(product.getCategory());
                 log.info(String.format("Resource with name: %s has been updated.", product.getName()));
             } catch (ConditionalCheckFailedException e) {
                 throw new ProductNotFoundException("Cannot update non-existent product");
@@ -58,13 +100,15 @@ public class ProductService {
     }
 
     public void deleteProduct(String name) {
-            Product Product = loadProductWithProductName(name);
+            Product product = loadProductWithProductName(name);
             ProductEntity entity = ProductEntity.builder()
-                            .productId(Product.getProductId())
+                            .productId(product.getProductId())
                             .name(name)
                             .build();
             productRepository.delete(entity);
-            log.info(String.format("Resource with name: %s has been successfully deleted.", Product.getName()));
+            cache.evictByProductName(name);
+            cache.evictByCategory(product.getCategory());
+            log.info(String.format("Resource with name: %s has been successfully deleted.", product.getName()));
     }
 
     private Product createProductFromEntity(ProductEntity productEntity) {
@@ -72,6 +116,7 @@ public class ProductService {
                 .productId(productEntity.getProductId())
                 .name(productEntity.getName())
                 .price(productEntity.getPrice())
+                .unitMeasurement(productEntity.getUnitMeasurement())
                 .description(productEntity.getDescription())
                 .category(productEntity.getCategory().toString())
                 .imageUrl(productEntity.getImageUrl())
@@ -83,6 +128,7 @@ public class ProductService {
                 .productId(product.getProductId())
                 .name(product.getName())
                 .price(product.getPrice())
+                .unitMeasurement(product.getUnitMeasurement())
                 .description(product.getDescription())
                 .category(Category.valueOf(product.getCategory()))
                 .imageUrl(product.getImageUrl())

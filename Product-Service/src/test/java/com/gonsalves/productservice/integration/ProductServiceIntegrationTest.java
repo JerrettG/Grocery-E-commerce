@@ -2,7 +2,6 @@ package com.gonsalves.productservice.integration;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gonsalves.productservice.IntegrationTest;
 import com.gonsalves.productservice.controller.model.ProductCreateRequest;
@@ -19,7 +18,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.ZonedDateTime;
 import java.util.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -65,7 +63,7 @@ public class ProductServiceIntegrationTest {
                 new KeySchemaElement().withAttributeName("name").withKeyType(KeyType.HASH));
 
         GlobalSecondaryIndex gsi = new GlobalSecondaryIndex()
-                .withIndexName("name-index")
+                .withIndexName(ProductEntity.NAME_INDEX)
                 .withKeySchema(gsiKeySchema)
                 .withProjection(new Projection().withProjectionType(ProjectionType.ALL))
                 .withProvisionedThroughput(new ProvisionedThroughput(1L, 2L));
@@ -93,6 +91,7 @@ public class ProductServiceIntegrationTest {
                 .name(firstProductName)
                 .price(firstProductPrice)
                 .description(firstProductDescription)
+                .unitMeasurement("1 lb")
                 .imageUrl(firstProductImageUrl)
                 .category(Category.BEVERAGES)
                 .rating(firstProductRating)
@@ -100,6 +99,7 @@ public class ProductServiceIntegrationTest {
         ProductEntity secondEntity = ProductEntity.builder()
                 .name(mockNeat.cars().valStr())
                 .price(mockNeat.doubles().val())
+                .unitMeasurement("1 lb")
                 .description(mockNeat.words().valStr())
                 .imageUrl(mockNeat.urls().valStr())
                 .category(Category.DRY_GOODS)
@@ -126,7 +126,7 @@ public class ProductServiceIntegrationTest {
         //GIVEN
 
         //WHEN
-        mockMvc.perform(get("/api/v1/productService/allProducts")
+        mockMvc.perform(get("/api/v1/productService/product/all")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
 
@@ -141,7 +141,7 @@ public class ProductServiceIntegrationTest {
         //GIVEN
 
         //WHEN
-        mockMvc.perform(get(String.format("/api/v1/productService/%s", firstProductName))
+        mockMvc.perform(get("/api/v1/productService/product/{productName}", firstProductName)
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
 
@@ -156,7 +156,7 @@ public class ProductServiceIntegrationTest {
         //GIVEN
         String invalidProductName = mockNeat.strings().valStr();
         //WHEN
-        mockMvc.perform(get(String.format("/api/v1/productService/%s", invalidProductName))
+        mockMvc.perform(get("/api/v1/productService/product/{productName}", invalidProductName)
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
 
@@ -173,7 +173,7 @@ public class ProductServiceIntegrationTest {
         String category = Category.BREAKFAST_AND_CEREAL.toString();
         String imageUrl = mockNeat.urls().valStr();
 
-        ProductCreateRequest createRequest = new ProductCreateRequest(name, price, description, category, imageUrl);
+        ProductCreateRequest createRequest = new ProductCreateRequest(name, price, "1 lb", description, category, imageUrl);
         //WHEN
         mockMvc.perform(post("/api/v1/productService/product")
                 .accept(MediaType.APPLICATION_JSON)
@@ -181,7 +181,7 @@ public class ProductServiceIntegrationTest {
                 .content(mapper.writeValueAsString(createRequest)))
         //THEN
                 .andExpect(status().isCreated());
-        mockMvc.perform(get(String.format("/api/v1/productService/%s", name))
+        mockMvc.perform(get("/api/v1/productService/product/{productName}", name)
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
@@ -190,7 +190,7 @@ public class ProductServiceIntegrationTest {
     @Test
     public void createProduct_existingProduct_responseConflict() throws Exception {
         //GIVEN
-        ProductCreateRequest createRequest = new ProductCreateRequest(firstProductName, firstProductPrice, firstProductDescription, Category.BEVERAGES.toString(), firstProductImageUrl);
+        ProductCreateRequest createRequest = new ProductCreateRequest(firstProductName, firstProductPrice,"1 lb", firstProductDescription, Category.BEVERAGES.toString(), firstProductImageUrl);
 
         //WHEN
         mockMvc.perform(post("/api/v1/productService/product")
@@ -209,6 +209,7 @@ public class ProductServiceIntegrationTest {
                 firstProductId,
                 firstProductName,
                 firstProductPrice,
+                "1 lb",
                 firstProductDescription,
                 updatedCategory.toString(),
                 firstProductImageUrl,
@@ -221,7 +222,7 @@ public class ProductServiceIntegrationTest {
                 .content(mapper.writeValueAsString(updateRequest)))
         //THEN
                 .andExpect(status().isAccepted());
-        mockMvc.perform(get(String.format("/api/v1/productService/%s", firstProductName))
+        mockMvc.perform(get("/api/v1/productService/product/{productName}", firstProductName)
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -238,6 +239,7 @@ public class ProductServiceIntegrationTest {
                 firstProductId,
                 invalidProductName,
                 firstProductPrice,
+                "1 lb",
                 firstProductDescription,
                 updatedCategory.toString(),
                 firstProductImageUrl,
@@ -257,13 +259,13 @@ public class ProductServiceIntegrationTest {
         //GIVEN
 
         //WHEN
-        mockMvc.perform(delete(String.format("/api/v1/productService/product?name=%s", firstProductName))
+        mockMvc.perform(delete("/api/v1/productService/product/{productName}", firstProductName)
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
         //THEN
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get(String.format("/api/v1/productService/%s", firstProductName))
+        mockMvc.perform(get("/api/v1/productService/product/{productName}", firstProductName)
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
@@ -273,13 +275,13 @@ public class ProductServiceIntegrationTest {
         //GIVEN
         String invalidProductName = mockNeat.strings().valStr();
         //WHEN
-        mockMvc.perform(delete(String.format("/api/v1/productService/product?name=%s", invalidProductName))
+        mockMvc.perform(delete("/api/v1/productService/product/{productName}", invalidProductName)
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 //THEN
                 .andExpect(status().isBadRequest());
 
-        mockMvc.perform(get("/api/v1/productService/allProducts")
+        mockMvc.perform(get("/api/v1/productService/product/all")
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())

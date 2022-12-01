@@ -10,23 +10,38 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController("ProductController")
 @RequestMapping(value = "/api/v1/productService")
 public class ProductController {
 
-    @Autowired
-    private ProductService productService;
 
-    @GetMapping({"/", "/allProducts"})
-    public ResponseEntity<ProductListResponse> getAllProducts() {
-        List<Product> results = productService.loadAllProducts();
+    private final ProductService productService;
+    @Autowired
+    public ProductController(ProductService productService) {
+        this.productService = productService;
+    }
+
+    @GetMapping("/product/all")
+    public ResponseEntity<ProductListResponse> getAllProducts(
+            @RequestParam(value = "category", defaultValue = "") String category,
+            @RequestParam(value = "searchTerm", defaultValue = "") String searchTerm) {
+        List<Product> results;
+
+        if (category.isBlank() && searchTerm.isBlank())
+             results = productService.loadAllProducts();
+        else if (!category.isBlank())
+            results = productService.loadAllProductsInCategory(category);
+        else
+            results = new ArrayList<>();
+
         ProductListResponse body = new ProductListResponse(results);
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
-    @GetMapping("/{productName}")
+    @GetMapping("/product/{productName}")
     public ResponseEntity<ProductResponse> getProductWithProductName(@PathVariable(name = "productName") String name) {
         try {
             Product product = productService.loadProductWithProductName(name);
@@ -60,10 +75,10 @@ public class ProductController {
         }
     }
 
-    @DeleteMapping("/product")
-    public ResponseEntity<String> deleteProductWithProductName(@RequestParam(name = "name", required = true)String name) {
+    @DeleteMapping("/product/{productName}")
+    public ResponseEntity<String> deleteProductWithProductName(@PathVariable String productName) {
         try {
-            productService.deleteProduct(name);
+            productService.deleteProduct(productName);
             return ResponseEntity.noContent().build();
         } catch (ProductNotFoundException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -74,6 +89,7 @@ public class ProductController {
                 product.getProductId(),
                 product.getName(),
                 product.getPrice(),
+                product.getUnitMeasurement(),
                 product.getDescription(),
                 product.getCategory(),
                 product.getImageUrl(),
@@ -84,6 +100,7 @@ public class ProductController {
         return Product.builder()
                 .name(request.getName())
                 .price(request.getPrice())
+                .unitMeasurement(request.getUnitMeasurement())
                 .description(request.getDescription())
                 .category(request.getCategory())
                 .imageUrl(request.getImageUrl())

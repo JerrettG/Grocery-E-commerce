@@ -3,42 +3,61 @@ package com.gonsalves.productservice.repository;
 
 import com.amazonaws.services.dynamodbv2.datamodeling.*;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
+import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
+import com.gonsalves.productservice.repository.entity.Category;
 import com.gonsalves.productservice.repository.entity.ProductEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class ProductRepository {
 
+    
+    private final DynamoDBMapper mapper;
     @Autowired
-    private DynamoDBMapper dynamoDBMapper;
+    public ProductRepository(DynamoDBMapper mapper) {
+        this.mapper = mapper;
+    }
 
     public List<ProductEntity> loadProductWithProductName(String name) {
         ProductEntity productEntity = new ProductEntity();
         productEntity.setName(name);
         DynamoDBQueryExpression<ProductEntity> queryExpression = new DynamoDBQueryExpression<ProductEntity>()
-                .withIndexName("name-index")
+                .withIndexName(ProductEntity.NAME_INDEX)
                 .withHashKeyValues(productEntity)
                 .withConsistentRead(false);
 
-        return dynamoDBMapper.query(ProductEntity.class, queryExpression);
+        return mapper.query(ProductEntity.class, queryExpression);
     }
 
     public List<ProductEntity> loadAll() {
-        return dynamoDBMapper.scan(ProductEntity.class, new DynamoDBScanExpression());
+        return mapper.scan(ProductEntity.class, new DynamoDBScanExpression());
+    }
+    public List<ProductEntity> loadAllProductsInCategory(Category category) {
+        Map<String, AttributeValue> valueMap = new HashMap<>();
+        valueMap.put(":category", new AttributeValue().withS(category.toString()));
+
+        DynamoDBScanExpression scanExpression = new DynamoDBScanExpression()
+                .withFilterExpression("category = :category")
+                .withExpressionAttributeValues(valueMap);
+        return mapper.scan(ProductEntity.class, scanExpression);
     }
 
     public void create(ProductEntity productEntity) {
-        dynamoDBMapper.save(productEntity);
+        mapper.save(productEntity);
     }
     public void delete(ProductEntity productEntity) {
-        dynamoDBMapper.delete(productEntity);
+        mapper.delete(productEntity);
     }
     public void update(ProductEntity productEntity) {
-        dynamoDBMapper.save(productEntity,
+        mapper.save(productEntity,
                 new DynamoDBSaveExpression()
                         .withExpectedEntry(
                                 "id",
