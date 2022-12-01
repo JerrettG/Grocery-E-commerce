@@ -1,15 +1,14 @@
-package com.gonsalves.orderservice.config;
+package com.gonsalves.customerprofileservice.config;
 
-import com.gonsalves.orderservice.service.model.Order;
+import com.gonsalves.customerprofileservice.service.model.CustomerProfile;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class CacheStore {
 
-    private final Cache<String, List<Order>> cache;
+    private final Cache<String, CustomerProfile> cache;
 
     public CacheStore(int expiry, TimeUnit timeUnit, long maximumSize) {
         this.cache = CacheBuilder.newBuilder()
@@ -19,7 +18,7 @@ public class CacheStore {
                 .build();
     }
 
-    public List<Order> get(String key) {
+    public CustomerProfile get(String key) {
         return cache.getIfPresent(key);
     }
 
@@ -27,7 +26,7 @@ public class CacheStore {
         cache.invalidate(key);
     }
 
-    public void add(String key, List<Order> value) {
+    public void add(String key, CustomerProfile value) {
         cache.put(key, value);
     }
 

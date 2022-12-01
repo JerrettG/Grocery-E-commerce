@@ -1,6 +1,5 @@
-package com.gonsalves.CartService;
+package com.gonsalves.customerprofileservice;
 
-import com.gonsalves.CartService.DynamoDbInitializer;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

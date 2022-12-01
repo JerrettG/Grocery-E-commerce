@@ -1,81 +1,97 @@
 version: '3.8'
 
 services:
-  discovery-service:
-    container_name: discovery-service
-    build:
-      context: ./DiscoveryService
-      dockerfile: Dockerfile
-    ports:
-      - "8761:8761"
+#  discovery-service:
+#    container_name: discovery-service
+#    build:
+#      context: ./DiscoveryService
+#      dockerfile: Dockerfile
+#    image: jerrettg/grocery-e-commerce-discovery-service:latest
+#    ports:
+#      - "8761:8761"
 
   user-interface:
     container_name: user-interface
     build:
       context: ./UI
       dockerfile: Dockerfile
+    image: jerrettg/grocery-e-commerce-user-interface:latest
     ports:
       - "8084:8084"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
+    depends_on:
+      - api-gateway
+      - zipkin
+      - product-service
+      - stripe
+      - cart-service
+      - customer-profile-service
+      - order-service
 
   product-service:
     container_name: product-service
     build:
       context: ./Product-Service
       dockerfile: Dockerfile
+    image: jerrettg/grocery-e-commerce-product-service:latest
     ports:
       - "8081:8081"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
-      AWS_REGION: ${AWS_REGION}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_KEY: ${AWS_SECRET_KEY}
+    depends_on:
+      - zipkin
 
   customer-profile-service:
     container_name: customer-profile-service
     build:
       context: ./CustomerProfile-Service
       dockerfile: Dockerfile
+    image: jerrettg/grocery-e-commerce-customer-profile-service:latest
     ports:
       - "8080:8080"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
-      AWS_REGION: ${AWS_REGION}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_KEY: ${AWS_SECRET_KEY}
+    depends_on:
+      - zipkin
 
   cart-service:
     container_name: cart-service
     build:
       context: ./Cart-Service
       dockerfile: Dockerfile
+    image: jerrettg/grocery-e-commerce-cart-service:latest
     ports:
       - "8083:8083"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
-      AWS_REGION: ${AWS_REGION}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_KEY: ${AWS_SECRET_KEY}
+    depends_on:
+      - zipkin
+
   order-service:
     container_name: order-service
     build:
       context: ./Order-Service
       dockerfile: Dockerfile
+    image: jerrettg/grocery-e-commerce-order-service:latest
     ports:
       - "8087:8087"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
-      AWS_REGION: ${AWS_REGION}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_KEY: ${AWS_SECRET_KEY}
+    depends_on:
+      - zipkin
+
+
   api-gateway:
     container_name: api-gateway
     build:
       context: ./Api-Gateway
       dockerfile: Dockerfile
+    image: jerrettg/grocery-e-commerce-api-gateway:latest
     ports:
       - "8090:8090"
+    depends_on:
+      - zipkin
+
+
+  zipkin:
+    container_name: zipkin
+    image: openzipkin/zipkin
+    ports:
       - "9411:9411"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka
+
+  stripe:
+    container_name: stripe
+    image: stripe/stripe-cli
+    ports:
+      - "8086:8086"

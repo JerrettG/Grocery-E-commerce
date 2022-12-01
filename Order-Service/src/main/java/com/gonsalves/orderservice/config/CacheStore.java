@@ -1,6 +1,6 @@
-package com.gonsalves.productservice.config;
+package com.gonsalves.orderservice.config;
 
-import com.gonsalves.productservice.service.model.Product;
+import com.gonsalves.orderservice.service.model.Order;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
@@ -9,38 +9,27 @@ import java.util.concurrent.TimeUnit;
 
 public class CacheStore {
 
-    private Cache<String, Product> productNameCache;
-    private Cache<String, List<Product>> productListCache;
+    private final Cache<String, List<Order>> cache;
 
-    public CacheStore(int expiry, TimeUnit timeUnit, long size) {
-        this.productNameCache = CacheBuilder.newBuilder()
+    public CacheStore(int expiry, TimeUnit timeUnit, long maximumSize) {
+        this.cache = CacheBuilder.newBuilder()
                 .expireAfterWrite(expiry, timeUnit)
-                .maximumSize(size)
+                .maximumSize(maximumSize)
                 .concurrencyLevel(Runtime.getRuntime().availableProcessors()) //uses the available CPU cores for max concurrency
                 .build();
-        this.productListCache = CacheBuilder.newBuilder()
-                .expireAfterWrite(expiry, TimeUnit.HOURS)
-                .concurrencyLevel(Runtime.getRuntime().availableProcessors())
-                .build();
     }
 
-    public Product getByProductName(String name) {
-        return productNameCache.getIfPresent(name);
-    }
-    public List<Product> getByCategory(String category) {
-        return productListCache.getIfPresent(category);
+    public List<Order> get(String key) {
+        return cache.getIfPresent(key);
     }
 
-    public void evictByProductName(String name) {
-        productNameCache.invalidate(name);
+    public void evict(String key) {
+        cache.invalidate(key);
     }
-    public void evictByCategory(String category) {productListCache.invalidate(category);}
 
-    public void addByProductName(String name, Product value) {
-        productNameCache.put(name, value);
-    }
-    public void addByCategory(String category, List<Product> value ){
-        productListCache.put(category, value);
+    public void add(String key, List<Order> value) {
+        cache.put(key, value);
     }
 
 }
+

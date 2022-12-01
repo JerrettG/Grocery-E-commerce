@@ -1,10 +1,12 @@
 package com.gonsalves.orderservice.unit;
 
+import com.gonsalves.orderservice.config.CacheStore;
 import com.gonsalves.orderservice.repository.entity.OrderEntity;
 import com.gonsalves.orderservice.repository.entity.OrderItemEntity;
 import com.gonsalves.orderservice.exception.OrderAlreadyExistsException;
 import com.gonsalves.orderservice.exception.OrderNotFoundException;
 import com.gonsalves.orderservice.repository.OrderRepository;
+import com.gonsalves.orderservice.repository.entity.Status;
 import com.gonsalves.orderservice.service.OrderService;
 import com.gonsalves.orderservice.service.model.Order;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,15 +23,18 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-public class OrderEntityServiceTest {
+@SpringBootTest
+public class OrderServiceTest {
 
     @InjectMocks
     private OrderService orderService;
     @Mock
     private OrderRepository orderRepository;
+    @Mock
+    private CacheStore cache;
     private Order order;
 
     private OrderEntity orderEntity;
@@ -36,6 +42,7 @@ public class OrderEntityServiceTest {
     private String orderId;
 
     private String userId;
+    private String paymentIntentId;
 
     private OrderItemEntity orderItemEntity;
 
@@ -43,14 +50,15 @@ public class OrderEntityServiceTest {
     public void before() {
         this.orderId = UUID.randomUUID().toString();
         this.userId = UUID.randomUUID().toString();
+        this.paymentIntentId = UUID.randomUUID().toString();
         this.orderItemEntity = new OrderItemEntity(
                 "Beef Tenderloin",
                 "/demo_images/beefTenderloin.jpg",
                 2,
                 4.99
         );
-        this.order = new Order(orderId, userId, UUID.randomUUID().toString(), "1234 Main St, Sacramento, CA, 92222", 23.47, "PROCESSING", new ArrayList<>(), "July 8, 2022");
-        this.orderEntity = new OrderEntity(orderId,userId,UUID.randomUUID().toString(),"1234 Main St, Sacramento, CA, 92222", 23.47, "PROCESSING", new ArrayList<>(), "July 8, 2022");
+        this.order = new Order(orderId, userId, paymentIntentId, "1234 Main St, Sacramento, CA, 92222", 23.47, "PROCESSING", new ArrayList<>(), "July 8, 2022");
+        this.orderEntity = new OrderEntity(orderId,userId,paymentIntentId,"1234 Main St, Sacramento, CA, 92222", 23.47, Status.PROCESSING, new ArrayList<>(), "July 8, 2022");
         MockitoAnnotations.openMocks(this);
     }
 
@@ -59,6 +67,7 @@ public class OrderEntityServiceTest {
         List<OrderEntity> orderEntityList = new ArrayList<>(Arrays.asList(orderEntity));
 
         when(orderRepository.getAllOrdersByUserId(userId)).thenReturn(orderEntityList);
+        when(cache.get(userId)).thenReturn(null);
         List<Order> result = orderService.getAllOrdersByUserId(userId);
 
         assertEquals(orderEntityList.size(), result.size(), "Expected method to return a list of all orders, but did not");
@@ -126,7 +135,7 @@ public class OrderEntityServiceTest {
 
         orderService.deleteOrder(order);
 
-        verify(orderRepository).deleteOrder(orderEntity);
+        verify(orderRepository).deleteOrder(any(OrderEntity.class));
     }
 
     @Test

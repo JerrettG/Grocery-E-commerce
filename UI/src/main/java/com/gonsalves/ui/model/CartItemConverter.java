@@ -1,4 +1,4 @@
-package com.gonsalves.UI.model;
+package com.gonsalves.ui.model;
 
 
 import java.util.ArrayList;

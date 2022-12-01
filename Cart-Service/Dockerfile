@@ -1,6 +1,14 @@
+FROM openjdk:17 as buildstage
+WORKDIR /Cart-Service
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+COPY src src
+RUN ./mvnw package
+COPY target/*.jar cartResponse-service.jar
+
 FROM openjdk:17
-ARG JAR_FILE=target/*.jar
-COPY ${JAR_FILE} cart-service.jar
-ENTRYPOINT ["java","-jar","/cart-service.jar"]
+COPY --from=buildstage /Cart-Service/cartResponse-service.jar .
+ENTRYPOINT ["java","-jar","-Dspring.profiles.active=prod","/cartResponse-service.jar"]
 
 EXPOSE 8083

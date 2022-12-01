@@ -1,4 +1,4 @@
-package com.gonsalves.cartservice.service.Cart;
+package com.gonsalves.cartservice.service.model;
 
 import com.gonsalves.cartservice.repository.entity.CartItemEntity;
 

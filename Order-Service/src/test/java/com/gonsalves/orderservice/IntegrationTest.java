@@ -1,4 +1,4 @@
-package com.gonsalves.customerprofileservice;
+package com.gonsalves.orderservice;
 
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;

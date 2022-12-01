@@ -1,5 +1,6 @@
-package com.gonsalves.UI.model;
+package com.gonsalves.ui.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

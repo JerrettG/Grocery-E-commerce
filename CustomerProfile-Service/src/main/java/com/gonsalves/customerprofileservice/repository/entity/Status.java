@@ -1,16 +1,6 @@
-package com.gonsalves.customerprofileservice.entity;
+package com.gonsalves.customerprofileservice.repository.entity;
 
 public enum Status {
-    ACTIVE("ACTIVE"),
-    DEACTIVATED("DEACTIVATED");
-
-    private String status;
-
-    Status(String status) {
-        this.status =status;
-    }
-
-    public String getStatus() {
-        return status;
-    }
+    ACTIVE,
+    INACTIVE
 }

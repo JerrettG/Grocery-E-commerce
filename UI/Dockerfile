@@ -1,11 +1,14 @@
+FROM openjdk:17 as buildstage
+WORKDIR /UI
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+COPY src src
+RUN ./mvnw package
+COPY target/*.jar user-interface.jar
+
 FROM openjdk:17
-ENV STRIPE_API_KEY=${STRIPE_API_KEY}
-ENV STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY}
-ENV STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
-CMD stripe login --$STRIPE_API_KEY
-CMD stripe listen --forward-to localhost:8084/stripe/events
-ARG JAR_FILE=target/*.jar
-COPY ${JAR_FILE} user-interface.jar
-ENTRYPOINT ["java","-jar","/user-interface.jar"]
+COPY --from=buildstage /UI/user-interface.jar .
+ENTRYPOINT ["java","-jar","-Dspring.profiles.active=prod","/user-interface.jar"]
 
 EXPOSE 8084

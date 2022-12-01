@@ -1,14 +1,15 @@
-package unit;
+package com.gonsalves.cartservice.unit;
 
-import com.gonsalves.CartService.repository.entity.CartItemEntity;
-import com.gonsalves.CartService.repository.CartRepository;
-import com.gonsalves.CartService.service.Cart.CartItem;
-import com.gonsalves.CartService.service.CartService;
+import com.gonsalves.cartservice.repository.entity.CartItemEntity;
+import com.gonsalves.cartservice.repository.CartRepository;
+import com.gonsalves.cartservice.service.model.CartItem;
+import com.gonsalves.cartservice.service.CartService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,33 +41,34 @@ public class CartServiceTest {
         productName = "Beef Tenderloin";
         productImageUrl = "/demo_images/beefTenderloin.jpg";
         productPrice = 4.99;
-
-        CartItem item = CartItem.builder()
+        cartItem = CartItem.builder()
                 .id(id)
                 .userId(userId)
                 .productId(productId)
+                .quantity(1)
                 .productName(productName)
                 .productPrice(productPrice)
-                .productImageUrl(productImageUrl).build();
-        CartItemEntity entity = new CartItemEntity(
-                id,
-                userId,
-                1,
-                productId,
-                productName,
-                productImageUrl,
-                4.99);
-        this.cartItemEntity = entity;
+                .productImageUrl(productImageUrl)
+                .build();
+        this.cartItemEntity = CartItemEntity.builder()
+                .userId(userId)
+                .productId(productId)
+                .quantity(1)
+                .productName(productName)
+                .productPrice(productPrice)
+                .productImageUrl(productImageUrl)
+                .build();
         MockitoAnnotations.openMocks(this);
     }
 
     @Test
     public void addItemToCart_itemNotInCart_AddsItemToCart() {
 
-        when(cartRepository.loadCartItem(userId, productId)).thenReturn(new ArrayList<>());
+        when(cartRepository.loadCartItem(eq(userId), eq(productId))).thenReturn(new ArrayList<>());
+
         cartService.addItemToCart(cartItem);
 
-        verify(cartRepository).create(cartItemEntity);
+        verify(cartRepository).create(eq(cartItemEntity));
     }
     @Test
     public void addItemToCart_itemAlreadyInCart_itemQuantityIncremented() {

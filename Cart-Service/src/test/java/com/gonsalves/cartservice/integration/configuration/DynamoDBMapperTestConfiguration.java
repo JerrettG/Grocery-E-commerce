@@ -9,12 +9,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
 @TestConfiguration
-public class DynamoDBMapperConfiguration {
+public class DynamoDBMapperTestConfiguration {
 
     @Autowired
     AmazonDynamoDB amazonDynamoDB;
+
     @Bean
-    @Primary
     public DynamoDBMapper dynamoDBMapper() {
         return new DynamoDBMapper(amazonDynamoDB, DynamoDBMapperConfig.SaveBehavior.UPDATE_SKIP_NULL_ATTRIBUTES.config());
     }

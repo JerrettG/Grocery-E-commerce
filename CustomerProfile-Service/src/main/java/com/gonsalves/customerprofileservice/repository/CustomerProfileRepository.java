@@ -5,7 +5,7 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBQueryExpression;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBSaveExpression;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
-import com.gonsalves.customerprofileservice.entity.CustomerProfile;
+import com.gonsalves.customerprofileservice.repository.entity.CustomerProfileEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -14,33 +14,31 @@ import java.util.List;
 @Repository
 public class CustomerProfileRepository {
 
+    
+    private final DynamoDBMapper mapper;
     @Autowired
-    DynamoDBMapper dynamoDBMapper;
-
-    public CustomerProfile loadCustomerByUserId(String userId) {
-        CustomerProfile profile = new CustomerProfile();
+    public CustomerProfileRepository(DynamoDBMapper mapper) {
+        this.mapper = mapper;
+    }
+    public CustomerProfileEntity loadCustomerByUserId(String userId) {
+        CustomerProfileEntity profile = new CustomerProfileEntity();
         profile.setUserId(userId);
-        DynamoDBQueryExpression<CustomerProfile> queryExpression = new DynamoDBQueryExpression<CustomerProfile>()
-                .withIndexName("user_id-index")
+        DynamoDBQueryExpression<CustomerProfileEntity> queryExpression = new DynamoDBQueryExpression<CustomerProfileEntity>()
                 .withHashKeyValues(profile)
                 .withConsistentRead(false);
-        List<CustomerProfile> results = dynamoDBMapper.query(CustomerProfile.class, queryExpression);
+        List<CustomerProfileEntity> results = mapper.query(CustomerProfileEntity.class, queryExpression);
         if (results.size() > 0)
             return results.get(0);
         return null;
     }
 
-    public void createCustomerProfile(CustomerProfile profile) {
-        dynamoDBMapper.save(profile);
+    public void createCustomerProfile(CustomerProfileEntity profile) {
+        mapper.save(profile);
     }
 
-    public void updateCustomerProfile(CustomerProfile profile) {
-        dynamoDBMapper.save(profile,
+    public void updateCustomerProfile(CustomerProfileEntity profile) {
+        mapper.save(profile,
                 new DynamoDBSaveExpression()
-                        .withExpectedEntry(
-                                "id",
-                                new ExpectedAttributeValue(
-                                        new AttributeValue(profile.getId())))
                         .withExpectedEntry(
                                 "user_id",
                                 new ExpectedAttributeValue(
@@ -50,7 +48,9 @@ public class CustomerProfileRepository {
         );
     }
 
-    public void deleteCustomerProfile(CustomerProfile profile) {
-         dynamoDBMapper.delete(profile);
+    public void deleteCustomerProfile(CustomerProfileEntity profile) {
+         mapper.delete(profile);
     }
+
 }
+

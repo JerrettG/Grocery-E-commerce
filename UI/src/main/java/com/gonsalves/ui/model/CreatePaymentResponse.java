@@ -1,6 +1,11 @@
-package com.gonsalves.UI.model;
+package com.gonsalves.ui.model;
 
 public class CreatePaymentResponse {
+    private String clientSecret;
+    public CreatePaymentResponse(String clientSecret) {
+        this.clientSecret = clientSecret;
+    }
+
     public String getClientSecret() {
         return clientSecret;
     }
@@ -9,8 +14,4 @@ public class CreatePaymentResponse {
         this.clientSecret = clientSecret;
     }
 
-    private String clientSecret;
-    public CreatePaymentResponse(String clientSecret) {
-        this.clientSecret = clientSecret;
-    }
 }

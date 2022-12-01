@@ -21,19 +21,22 @@ spec:
           ports:
             - containerPort: 8083
           env:
-            - name: EUREKA_SERVICE_URL
-              value: http://discovery-service:8761/eureka
-            - name: AWS_REGION
+            - name: ZIPKIN_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: gateway-cm
+                  key: zipkin_service_url
+            - name: GROCERY_AWS_REGION
               valueFrom:
                 secretKeyRef:
                   name: secret
                   key: aws-region
-            - name: AWS_ACCESS_KEY_ID
+            - name: GROCERY_AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
                   name: secret
                   key: aws-access-key-id
-            - name: AWS_SECRET_KEY
+            - name: GROCERY_AWS_SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   name: secret
@@ -46,6 +49,8 @@ metadata:
 spec:
   selector:
     app: cart-service-app
+  type: ClusterIP
   ports:
     - port: 80
       targetPort: 8083
+      protocol: TCP

@@ -1,4 +1,4 @@
-package com.gonsalves.CartService;
+package com.gonsalves.customerprofileservice;
 
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -7,7 +7,6 @@ import org.testcontainers.containers.GenericContainer;
 
 public class DynamoDbInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
     private static GenericContainer<?> dynamoDb;
-    private static final int DYNAMO_PORT = 8000;
 
     private static GenericContainer<?> getDynamoDbInstance() {
         if (dynamoDb == null) {

@@ -7,50 +7,94 @@
     </head>
 <body>
 <!---------------------------------- NAVBAR ------------------------->
-    <nav th:fragment="navbar" class="navbar">
-        <a th:href="@{/}" class="logo">Ecommerce</a>
-        <input class="menu-btn" type="checkbox" id="menu-btn" />
-        <label class="menu-icon" for="menu-btn"><span class="nav-icon"></span></label>
-        <ul class="menu">
-            <li><a th:href="@{/}">Home</a></li>
-            <li class="list-dropdown">
-                <div class="dropdown">
-                    <div class="dropbtn-container">
-                        <button class="dropbtn">Categories
-                            <i class="fa fa-caret-down"></i>
-                        </button>
-                    </div>
-                    <p class="navbar-link-header">Categories</p>
-                    <div class="dropdown-content">
-                        <a class="dropdown-links" href="#">Fruit & Produce</a>
-                    </div>
-                 </div>
-            </li>
-            <li class="list-dropdown">
-                <div class="dropdown">
-                    <div class="dropbtn-container">
-                        <button class="dropbtn">Account
-                            <i class="fa fa-caret-down"></i>
-                        </button>
-                    </div>
-                    <div class="dropdown-content">
-                        <p class="navbar-link-header">Account</p>
-                        <a class="dropdown-links" th:href="@{/profile}">Profile</a>
-                        <a class="dropdown-links" sec:authorize="!isAuthenticated()" th:href="@{/oauth2/authorization/auth0}">Login</a>
-                        <a class="dropdown-links" sec:authorize="isAuthenticated()" th:href="@{/logout}">Logout</a>
-                    </div>
+    <th:block th:fragment="navbar">
+        <nav>
+            <div class="navbar">
+                <div class="navbar-logo-container">
+                    <a th:href="@{/}" class="logo">Ecommerce</a>
                 </div>
-            </li>
-            <li><a id="cart-link" th:href="@{/shoppingCart}"><i class="fa fa-shopping-cart" style="font-size:24px"></i></a></li>
-        </ul>
-    </nav>
+                <div class="navbar-link-container">
+                    <input class="menu-btn" type="checkbox" id="menu-btn" />
+                    <label class="menu-icon" for="menu-btn" onclick="openNav()"><span class="nav-icon"></span></label>
+                    <ul class="menu">
+                        <li><a th:href="@{/}">Home</a></li>
+                        <li class="list-dropdown">
+                            <div class="dropdown">
+                                <div class="dropbutton-container">
+                                    <button class="dropbutton">Categories
+                                        <i class="fa fa-caret-down"></i>
+                                    </button>
+                                </div>
+                                <p class="navbar-link-header">Categories</p>
+                                <div class="dropdown-content">
+                                    <th:block th:fragment="category-links">
+                                        <a th:href="@{|/home?category=BAKED_GOODS|}">Baked goods</a>
+                                        <a th:href="@{|/home?category=BEVERAGES|}">Beverages</a>
+                                        <a th:href="@{|/home?category=BREAKFAST_AND_CEREAL|}">Breakfast & Cereal</a>
+                                        <a th:href="@{|/home?category=CONDIMENTS|}">Condiments</a>
+                                        <a th:href="@{|/home?category=DAIRY_AND_EGGS|}">Dairy & Eggs</a>
+                                        <a th:href="@{|/home?category=DRY_GOODS|}">Dry goods</a>
+                                        <a th:href="@{|/home?category=FROZEN_FOODS|}">Frozen foods</a>
+                                        <a th:href="@{|/home?category=FRUIT_AND_PRODUCE|}">Fruit & Produce</a>
+                                        <a th:href="@{|/home?category=HEALTH_AND_BEAUTY|}">Health & Beauty</a>
+                                        <a th:href="@{|/home?category=MEAT_POULTRY_AND_SEAFOOD|}">Meat, Poultry, & Seafood</a>
+                                        <a th:href="@{|/home?category=SPICES|}">Spices</a>
+                                    </th:block>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="navbar-search-bar-container">
+                    <input id="search-bar" placeholder="Search" type="search" name="searchTerm" >
+                    <button type="button" ><i class="fa fa-search"></i></button>
+<!--                    <form id="search-bar-form" onsubmit="refreshSearch()"></form>-->
+                </div>
 
+                <div class="account-links-container">
+                    <ul class="account-links">
+                        <li style="float:left;">
+                            <div class="account-dropdown">
+                                <div class="account-dropbutton-container">
+                                    <button class="account-dropbutton">Account
+                                        <i class="fa fa-caret-down"></i>
+                                    </button>
+                                </div>
+                                <div class="account-dropdown-content">
+                                    <p class="navbar-link-header">Account</p>
+                                    <a class="dropdown-links" th:href="@{/profile}">Profile</a>
+                                    <a class="dropdown-links" sec:authorize="!isAuthenticated()" th:href="@{/oauth2/authorization/auth0}">Login</a>
+                                    <a class="dropdown-links" sec:authorize="isAuthenticated()" th:href="@{/logout}">Logout</a>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <a id="cart-link" th:href="@{/shoppingCart}"><i class="fa fa-shopping-cart" style="font-size:24px"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div id="mySidenav" class="sidenav">
+            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+            <p class="navbar-link-header">Categories</p>
+            <th:block th:insert="fragments :: category-links">
+
+            </th:block>
+        </div>
+        <script>
+            function openNav() {
+                document.getElementById("mySidenav").style.width = "275px";
+            }
+
+            function closeNav() {
+                document.getElementById("mySidenav").style.width = "0";
+            }
+        </script>
+    </th:block>
 
 
 <!---------------------------------- PRODUCT CATALOG ------------------------->
-    <tr th:fragment="product-catalog-row">
-        <td  th:each="i: ${#numbers.sequence(0, 3)}" th:include="fragments :: product-overview"></td>
-    </tr>
 
     <a th:href="@{|/product/${product.getName()}|}" th:fragment="product-overview">
         <li>
@@ -60,7 +104,7 @@
         </li>
     </a>
 <!---------------------------------- SHOPPING CART ITEM ------------------------->
-    <li th:fragment="shopping-cart-item">
+    <li th:fragment="shopping-cart-item" class="shopping-cart-item">
         <div class="shopping-cart-item-div">
             <div class="order-product-image">
                 <img th:src="${cartItem.getProductImageUrl()}" th:alt="${cartItem.getProductName()}">
@@ -74,22 +118,14 @@
             <div class="order-product-unit-price">
                 <span th:text="${#numbers.formatCurrency(cartItem.getProductPrice())}"></span>
             </div>
-<!--        -->
-<!--        <img th:src="${cartItem.getProductImageUrl()}" th:alt="${cartItem.getProductName()}">-->
-<!--        <h3 th:text="${cartItem.getProductName()}"></h3>-->
-<!--&lt;!&ndash;        <p th:text="${cartItem.getDesc}"></p>&ndash;&gt;-->
-<!--        <h3 th:text="|${#numbers.formatCurrency(cartItem.getProductPrice())} x${cartItem.getQuantity()}|"></h3>-->
             <div class="remove-item">
-                <button class="remove-item-button" type="submit" form="remove-from-cart"><span class="remove-item-icon"></span></button>
+                <button class="remove-item-button" type="button" th:onclick="removeFromCart([[${cartItem.getId()}]], [[${cartItem.getUserId()}]])"  form="remove-from-cart"><span class="remove-item-icon"></span></button>
             </div>
-            <form th:action="@{/shoppingCart}" method="POST" th:object="${cartItem}" id="remove-from-cart">
-                <input type="hidden" th:value="${cartItem.getId()}" name="id">
-                <input type="hidden" th:value="${cartItem.getUserId()}" name="userId">
-                <input type="hidden" th:value="${cartItem.getQuantity()}" name="quantity">
-                <input type="hidden" th:value="${cartItem.getProductId()}" name="productId">
-                <input type="hidden" th:value="${cartItem.getProductName()}" name="productName">
-                <input type="hidden" th:value="${cartItem.getProductImageUrl()}" name="productImageUrl">
-                <input type="hidden" th:value="${cartItem.getProductPrice()}" name="productP">
+<!--            <form th:action="@{/shoppingCart}" method="POST" id="remove-from-cart">-->
+            <form th:onsubmit="removeFromCart(${cartItem})" id="remove-from-cart">
+<!--                <input type="hidden" th:value="${cartItem.getId()}" name="id">-->
+<!--                <input type="hidden" th:value="${cartItem.getUserId()}" name="userId">-->
+<!--                <input type="hidden" th:value="${cartItem.getProductId()}" name="productId">-->
             </form>
         </div>
     </li>
@@ -143,25 +179,8 @@
             <div class="order-product-unit-price">
                 <span th:text="${#numbers.formatCurrency(item.getUnitPrice())}"></span>
             </div>
-<!--            <table class="order-details-table">-->
-<!--                <thead>-->
-<!--                <tr>-->
-<!--                    <th>Product name</th>-->
-<!--                    <th>Quantity</th>-->
-<!--                    <th>Unit price</th>-->
-<!--                </tr>-->
-<!--                </thead>-->
-<!--                <tbody>-->
-<!--                <tr th:each="orderItem : ${order.getOrderItems()}">-->
-<!--                    <td class="order-details-product-name" th:text="${orderItem.getItemName()}"></td>-->
-<!--                    <td th:text="${orderItem.getQuantity()}"></td>-->
-<!--                    <td th:text="${#numbers.formatCurrency(orderItem.getUnitPrice())}"></td>-->
-<!--                </tr>-->
-<!--                </tbody>-->
-<!--            </table>-->
         </div>
     </div>
 
-<script th:src="@{/js/script.js}"></script>
 </body>
 </html>

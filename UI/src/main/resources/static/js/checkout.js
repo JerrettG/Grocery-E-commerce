@@ -35,11 +35,12 @@ async function initialize() {
         customerId: customerId}),
         {
         method: "POST",
-        headers: { "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": csrf},
-        body: JSON.stringify({ items }),
+        headers: { "Content-Type": "application/json"},
+        body: JSON.stringify({ items }
+        ),
     });
-    const { clientSecret } = await response.json();
+        const {clientSecret} = await response.json();
+
 
     const appearance = {
         theme: 'stripe',

@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CustomerProfileRequest {
-
+public class CustomerProfileUpdateRequest implements CustomerProfileRequest{
+    private String userId;
     private String email;
     private String firstName;
     private String lastName;

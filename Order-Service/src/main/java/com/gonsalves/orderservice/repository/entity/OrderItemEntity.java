@@ -6,20 +6,20 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-@Builder
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @DynamoDBDocument
-public class OrderItem {
+public class OrderItemEntity {
 
-    @DynamoDBAttribute(attributeName = "item_name")
+    @DynamoDBAttribute(attributeName = "name")
     private String itemName;
-    @DynamoDBAttribute(attributeName = "item_image_url")
+    @DynamoDBAttribute(attributeName = "image_url")
     private String imageUrl;
-    @DynamoDBAttribute(attributeName = "item_quantity")
+    @DynamoDBAttribute(attributeName = "quantity")
     private int quantity;
-    @DynamoDBAttribute(attributeName = "item_unit_price")
+    @DynamoDBAttribute(attributeName = "unit_price")
     private double unitPrice;
 
 

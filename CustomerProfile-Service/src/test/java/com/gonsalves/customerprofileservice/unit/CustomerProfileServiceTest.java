@@ -1,3 +1,6 @@
+package com.gonsalves.customerprofileservice.unit;
+
+import com.gonsalves.customerprofileservice.config.CacheStore;
 import com.gonsalves.customerprofileservice.controller.model.CustomerProfileCreateRequest;
 import com.gonsalves.customerprofileservice.controller.model.CustomerProfileUpdateRequest;
 import com.gonsalves.customerprofileservice.repository.entity.CustomerProfileEntity;
@@ -28,30 +31,17 @@ public class CustomerProfileServiceTest {
     private CustomerProfileService customerProfileService;
     @Mock
     private CustomerProfileRepository customerProfileRepository;
-    private String profileId;
+    @Mock
+    private CacheStore cache;
+
     private String userId;
     private CustomerProfileEntity profileEntity;
-    private CustomerProfileUpdateRequest updateRequest;
-    private CustomerProfileCreateRequest createRequest;
+    private CustomerProfile profile;
 
     @BeforeEach
     public void before() {
-        this.profileId = UUID.randomUUID().toString();
         this.userId = UUID.randomUUID().toString();
-        this.updateRequest = new CustomerProfileUpdateRequest(
-                userId,
-                "john@test.com",
-                "John",
-                "Smitherson",
-                "1234 Main St, Sacramento, CA, 92222");
-        this.createRequest = new CustomerProfileCreateRequest(
-                userId,
-                "john@test.com",
-                "John",
-                "Smitherson",
-                "1234 Main St, Sacramento, CA, 92222");
         this.profileEntity = new CustomerProfileEntity(
-                profileId,
                 userId,
                 "email@test.com",
                 "John",
@@ -59,6 +49,14 @@ public class CustomerProfileServiceTest {
                 "1234 Main St, Sacramento, CA, 92222",
                 Status.ACTIVE,
                 "July 7, 2022"
+        );
+        this.profile = new CustomerProfile(
+                userId,
+                "email@test.com",
+                "John",
+                "Smith",
+                "1234 Main St, Sacramento, CA, 92222",
+                Status.ACTIVE.toString()
         );
         MockitoAnnotations.openMocks(this);
     }
@@ -69,7 +67,7 @@ public class CustomerProfileServiceTest {
 
         CustomerProfile result = customerProfileService.loadCustomerByUserId(userId);
 
-        assertEquals(profileEntity.getId(), result.getId(), "Expected result to have matching id, but did not.");
+        assertEquals(profileEntity.getUserId(), result.getUserId(), "Expected result to have matching id, but did not.");
         assertEquals(profileEntity.getUserId(), result.getUserId(), "Expected result to have matching user id, but did not.");
     }
 
@@ -85,7 +83,7 @@ public class CustomerProfileServiceTest {
     public void createCustomerProfile() {
         when(customerProfileRepository.loadCustomerByUserId(userId)).thenReturn(null);
 
-        customerProfileService.createCustomerProfile(createRequest);
+        customerProfileService.createCustomerProfile(profile);
 
         verify(customerProfileRepository).createCustomerProfile(any(CustomerProfileEntity.class));
     }
@@ -94,7 +92,7 @@ public class CustomerProfileServiceTest {
     public void createCustomerProfile_profileAlreadyExists_throwsCustomerProfileAlreadyExistsException() {
         when(customerProfileRepository.loadCustomerByUserId(userId)).thenReturn(profileEntity);
 
-        assertThrows(CustomerProfileAlreadyExistsException.class, ()->customerProfileService.createCustomerProfile(createRequest),
+        assertThrows(CustomerProfileAlreadyExistsException.class, ()->customerProfileService.createCustomerProfile(profile),
                 "Expected creating a profileEntity for customer that already exists to throw CustomerProfileAlreadyExistsException, but did not.");
     }
 
@@ -102,7 +100,7 @@ public class CustomerProfileServiceTest {
     public void updateCustomerProfile() {
         when(customerProfileRepository.loadCustomerByUserId(userId)).thenReturn(profileEntity);
 
-        customerProfileService.updateCustomerProfile(updateRequest);
+        customerProfileService.updateCustomerProfile(profile);
 
         verify(customerProfileRepository).updateCustomerProfile(any(CustomerProfileEntity.class));
     }
@@ -112,7 +110,7 @@ public class CustomerProfileServiceTest {
 
         when(customerProfileRepository.loadCustomerByUserId(userId)).thenReturn(null);
 
-        assertThrows(CustomerProfileNotFoundException.class, ()-> customerProfileService.updateCustomerProfile(updateRequest),
+        assertThrows(CustomerProfileNotFoundException.class, ()-> customerProfileService.updateCustomerProfile(profile),
                 "Expected updating profileEntity that does not exist to throw CustomerProfileNotFoundException, but did not.");
     }
 

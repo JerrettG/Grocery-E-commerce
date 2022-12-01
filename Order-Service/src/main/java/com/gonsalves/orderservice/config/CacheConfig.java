@@ -1,4 +1,4 @@
-package com.gonsalves.productservice.config;
+package com.gonsalves.orderservice.config;
 
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 public class CacheConfig {
 
     @Bean
-    public CacheStore productCache() {
-        return new CacheStore(24, TimeUnit.HOURS, 1000);
+    public CacheStore orderCache() {
+        return new CacheStore(30, TimeUnit.MINUTES, 1000);
     }
 }

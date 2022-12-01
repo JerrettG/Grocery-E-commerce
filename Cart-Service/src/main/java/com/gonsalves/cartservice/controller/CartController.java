@@ -1,8 +1,13 @@
-package com.gonsalves.CartService.controller;
+package com.gonsalves.cartservice.controller;
 
-import com.gonsalves.CartService.entity.Cart;
-import com.gonsalves.CartService.entity.CartItem;
-import com.gonsalves.CartService.service.CartService;
+import com.gonsalves.cartservice.controller.model.AddItemToCartRequest;
+import com.gonsalves.cartservice.controller.model.CartResponse;
+import com.gonsalves.cartservice.controller.model.RemoveItemFromCartRequest;
+import com.gonsalves.cartservice.controller.model.UpdateItemQuantityRequest;
+import com.gonsalves.cartservice.exception.CartItemNotFoundException;
+import com.gonsalves.cartservice.repository.entity.CartItemEntity;
+import com.gonsalves.cartservice.service.model.CartItem;
+import com.gonsalves.cartservice.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,42 +19,85 @@ import java.util.List;
 @RequestMapping("/api/v1/cartService")
 public class CartController {
 
+
+    private final CartService cartService;
+
     @Autowired
-    private CartService cartService;
+    public CartController(CartService cartService) {
+        this.cartService = cartService;
+    }
 
 
     @GetMapping("/cart/{userId}")
-    public ResponseEntity<Cart> getCart(@PathVariable("userId") String userId) {
+    public ResponseEntity<CartResponse> getCart(@PathVariable("userId") String userId) {
         List<CartItem> cartItems = cartService.loadAllCartItems(userId);
-        Cart cart = new Cart();
-        cart.setCartItems(cartItems);
-        cart.calculateTotalCost();
-        return new ResponseEntity<>(cart, HttpStatus.OK);
+        CartResponse cartResponse = new CartResponse();
+        cartResponse.setCartItems(cartItems);
+        cartResponse.calculateTotalCost();
+        return new ResponseEntity<>(cartResponse, HttpStatus.OK);
     }
 
-    @PostMapping(path = "/cartItem")
-    public @ResponseBody ResponseEntity<String> addCartItem(@RequestBody CartItem cartItem) {
-        //DynamoDB will not autogenerate hash key if it is not null
-        if (cartItem.getId() != null)
-            cartItem.setId(null);
+    @PostMapping("/cart/{userId}/cartItem")
+    public @ResponseBody ResponseEntity<String> addCartItem(@RequestBody AddItemToCartRequest request) {
+        CartItem cartItem = CartItem.builder()
+                .userId(request.getUserId())
+                .quantity(Math.abs(request.getQuantity()))
+                .productId(request.getProductId())
+                .productName(request.getProductName())
+                .productImageUrl(request.getProductImageUrl())
+                .productPrice(request.getProductPrice())
+                .build();
         cartService.addItemToCart(cartItem);
         return new ResponseEntity<>("Adding item to cart was successful.", HttpStatus.CREATED);
     }
 
-    @PutMapping("/cartItem")
-    public ResponseEntity<String> updateItemQuantity(@RequestBody CartItem cartItem, @RequestParam("quantity") int updatedQuantity ) {
-        cartService.updateItemQuantity(cartItem, updatedQuantity);
-        return new ResponseEntity<>("Item quantity updated successfully.", HttpStatus.ACCEPTED);
+    /**
+     * This endpoint will update the quantity of a cartItem in the cart of the specified user. If the updated quantity
+     * is < 0 the user is met with a 400 status code. If the updated quantity is 0, the item will be removed from the user's
+     * cart. If > 0 the quantity will be updated and the user will be returned a 202 status code
+     * @param request The request containing the id, userId, and the updated quantity for the item being updated
+     * @return A 202 response if quantity >= 0, 400 if not.
+     */
+    @PutMapping("/cart/{userId}/cartItem")
+    public ResponseEntity<String> updateItemQuantity(@RequestBody UpdateItemQuantityRequest request) {
+        if (request.getUpdatedQuantity() < 0)
+            return ResponseEntity.badRequest().build();
+        else if (request.getUpdatedQuantity() == 0) {
+            CartItem cartItem = CartItem.builder()
+                    .id(request.getId())
+                    .userId(request.getUserId())
+                    .build();
+            cartService.removeItemFromCart(cartItem);
+            return new ResponseEntity<>("Item quantity is 0. Item has been removed from cart successfully", HttpStatus.ACCEPTED);
+        }
+        else {
+            try {
+                CartItem cartItem = CartItem.builder()
+                        .id(request.getId())
+                        .userId(request.getUserId())
+                        .build();
+                cartService.updateItemQuantity(cartItem, request.getUpdatedQuantity());
+                return new ResponseEntity<>("Item quantity updated successfully.", HttpStatus.ACCEPTED);
+            } catch (CartItemNotFoundException e) {
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            }
+        }
+    }
+    @DeleteMapping(path = "/cart/{userId}/cartItem/{cartItemId}")
+    public ResponseEntity<String> removeItem(
+            @PathVariable("userId")String userId,
+            @PathVariable("cartItemId")String cartItemId) {
+        CartItem cartItem = CartItem.builder()
+                .id(cartItemId)
+                .userId(userId)
+                .build();
+        cartService.removeItemFromCart(cartItem);
+        return new ResponseEntity<>("Item removed from cart successfully.", HttpStatus.ACCEPTED);
+    }
+    @DeleteMapping("/cart/{userId}")
+    public ResponseEntity<String> clearCart(@PathVariable("userId") String userId) {
+        cartService.clearCart(userId);
+        return new ResponseEntity<>("Cart cleared successfully.", HttpStatus.ACCEPTED);
     }
 
-    @DeleteMapping(path = "/cartItem", consumes = "application/xml;charset=UTF-8", produces = "application/xml;charset=UTF-8")
-    public ResponseEntity<String> removeItem(@RequestBody CartItem cartItem) {
-        cartService.removeItemFromCart(cartItem);
-        return new ResponseEntity<>("Item removed from cart successfully.", HttpStatus.OK);
-    }
-    @DeleteMapping("/cart")
-    public ResponseEntity<String> clearCart(@RequestParam("userId") String userId) {
-        cartService.clearCart(userId);
-        return new ResponseEntity<>("Cart cleared successfully.", HttpStatus.OK);
-    }
 }

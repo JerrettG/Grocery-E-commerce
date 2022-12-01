@@ -1,2 +1,8 @@
-package com.gonsalves.CartService.exception;public class CartItemNotFoundException {
+package com.gonsalves.cartservice.exception;
+
+public class CartItemNotFoundException extends RuntimeException{
+
+    public CartItemNotFoundException(String message) {
+        super(message);
+    }
 }

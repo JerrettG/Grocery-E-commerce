@@ -1,4 +1,4 @@
-package com.gonsalves.productservice.integration.configuration;
+package com.gonsalves.orderservice.integration.configuration;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
@@ -14,7 +14,6 @@ public class DynamoDBMapperTestConfiguration {
     @Autowired
     AmazonDynamoDB amazonDynamoDB;
     @Bean
-    @Primary
     public DynamoDBMapper dynamoDBMapper() {
         return new DynamoDBMapper(amazonDynamoDB, DynamoDBMapperConfig.SaveBehavior.UPDATE_SKIP_NULL_ATTRIBUTES.config());
     }

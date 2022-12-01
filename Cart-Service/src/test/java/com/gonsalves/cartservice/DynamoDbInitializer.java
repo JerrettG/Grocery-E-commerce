@@ -1,3 +1,5 @@
+package com.gonsalves.cartservice;
+
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.env.MockPropertySource;
@@ -25,5 +27,7 @@ public class DynamoDbInitializer implements ApplicationContextInitializer<Config
                             .withProperty("dynamodb.override_endpoint", "true")
                             .withProperty("dynamodb.endpoint", dynamoDbEndpoint));
         }
+
+
     }
 }

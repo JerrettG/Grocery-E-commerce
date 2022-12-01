@@ -12,6 +12,8 @@ a {
     color: #ffffff;
 }
 
+
+
 section {
     padding-top: 6em;
     padding-bottom: 6em;
@@ -24,7 +26,48 @@ section {
     position: fixed;
     width: 100%;
     z-index: 3;
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    justify-content: flex-start;
 }
+
+.navbar-logo-container {
+
+}
+
+.navbar-link-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+.navbar-search-bar-container {
+    min-width: 40%;
+    flex-grow: 1;
+    display: flex;
+}
+.navbar-search-bar-container button {
+    float: right;
+    padding: 6px 10px;
+    margin: 14px 0;
+    border: solid thin gray;
+    border-radius: 0 5px 5px 0;
+    background: #ddd;
+    font-size: 17px;
+    cursor: pointer;
+}
+.navbar-search-bar-container button:hover {
+    background: #ccc;
+}
+
+#search-bar {
+    width: 100%;
+    margin: 14px 0;
+    padding: 0.75em;
+    border-radius: 5px 0 0 5px;
+    border: solid thin gray;
+}
+
 
 .navbar ul {
     margin: 0;
@@ -41,7 +84,6 @@ section {
     display: block;
     padding: 20px;
     text-decoration: none;
-    transition: all 0.1s ease;
 }
 
 
@@ -57,7 +99,7 @@ section {
 }
 
 .navbar .menu {
-    clear: both;
+    display: none;
     max-height: 0;
     transition: max-height 0.4s ease-out;
 }
@@ -105,24 +147,7 @@ section {
     display: none;
 }
 
-.navbar .menu-btn:checked ~ .menu {
-    max-height: 700px;
-}
-
-.navbar .menu-btn:checked ~ .menu-icon .nav-icon {
-    background: transparent;
-}
-
-.navbar .menu-btn:checked ~ .menu-icon .nav-icon:before {
-    transform: rotate(-45deg);
-    top: 0;
-}
-
-.navbar .menu-btn:checked ~ .menu-icon .nav-icon:after {
-    transform: rotate(45deg);
-    top: 0;
-}
-.dropbtn-container {
+.dropbutton-container {
     display: none;
 }
 
@@ -131,16 +156,89 @@ section {
     color: gray;
 }
 
-.dropdown-content {
-    display: block;
+.dropdown-content, .account-dropdown-content {
+    display: none;
 }
 
 .dropdown .fa-caret-down {
     visibility: hidden;
 }
+.account-links {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.account-button {
+    padding:0;
+
+}
+.account-dropdown {
+    padding: 0;
+}
+.account-dropbutton-container {
+    padding: 20px;
+}
+.account-dropdown, .account-dropbutton-container, .account-dropbutton {
+    font-size: 16px;
+    border: none;
+    outline: none;
+    color: #ffffff;
+    background-color: inherit;
+    font-family: inherit;
+    margin: auto;
+}
+.account-dropbutton-container:hover, .dropbutton-container:hover {
+    background-color: #50bd56;
+}
+
+.sidenav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    background-color: #7dd182;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+}
+.sidenav p {
+    display: block;
+    color: gray;
+    padding: 8px 8px 8px 32px;
+    font-size: 22px;
+}
+
+.sidenav a {
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 16px;
+    color: #ffffff;
+    display: block;
+    transition: 0.3s;
+}
+
+.sidenav a:hover {
+    color: #cccccc;
+}
+
+.sidenav .closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+}
+
+@media screen and (max-height: 450px) {
+    .sidenav {padding-top: 15px;}
+    .sidenav a {font-size: 18px;}
+}
 
 
-@media (min-width:48em) {
+@media (min-width:1058px) {
 
     .navbar li {
         float: left;
@@ -154,6 +252,7 @@ section {
     }
 
     .navbar .menu {
+        display: block;
         clear: none;
         float: right;
         max-height: none;
@@ -164,11 +263,11 @@ section {
     .dropdown .fa-caret-down {
         visibility: visible;
     }
-    .dropbtn-container {
+    .dropbutton-container {
         display: block;
     }
 
-    .dropdown .dropbtn-container .dropbtn {
+    .dropdown .dropbutton-container .dropbutton {
         font-size: 16px;
         border: none;
         outline: none;
@@ -177,13 +276,12 @@ section {
         font-family: inherit;
         margin: auto;
     }
-    .dropdown .dropbtn-container {
+    .dropdown .dropbutton-container {
         padding: 20px;
     }
 
 
-    .dropdown-content {
-        display: none;
+    .dropdown-content, .account-dropdown-content {
         position: absolute;
         background-color: #7dd182;
         min-width: 160px;
@@ -201,10 +299,10 @@ section {
     }
 
     .dropdown-content a:hover {
-        background-color: #ddd;
+        background-color: #50bd56;
     }
 
-    .dropdown:hover .dropdown-content {
+    .dropdown:hover .dropdown-content, .account-dropdown:hover .account-dropdown-content {
         display: block;
     }
     .navbar-link-header {
@@ -267,11 +365,27 @@ section {
 }
 
 /************************* SHOPPING CART ****************/
+#checkout-button {
+    float: right;
+    padding: 1em 2em;
+    background: rgba(227,143,29);
+    margin: 1em 0;
+    border: none;
+    border-radius: 5px;
+    color: #ffffff;
+    box-shadow: 0 2px 3px 0 rgb(0 0 0 / 50%);
+}
+
+#checkout-button:hover {
+    cursor: pointer;
+    background: rgba(227,143,29, 70%);
+}
+
 
 .shopping-cart {
     min-width: 48em;
     min-height:12em;
-    margin: 0 10%;
+    margin: 1em 10%;
     width: 80%;
     background: white;
     box-shadow: 1px 1px 5px 0 rgba(0, 0, 0, 0.7);
@@ -299,8 +413,13 @@ section {
     padding: 0 2em;
     list-style: none;
 }
+.shopping-cart hr {
+    width: 95%;
+}
 
 .shopping-cart h2 {
+    font-size: 1.25em;
+    color: gray;
     padding: 5px 2em;
     margin: 0;
 }
@@ -346,11 +465,19 @@ section {
 
 
 /************* PRODUCT PAGE *********/
+.product-container {
+    margin: 0 5%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
 .product-image-container {
     padding: 3em;
     display: flex;
     position: relative;
     float: left;
+    min-width: 200px;
+    min-height: 200px;
     height: 200px;
     width: 200px;
 }
@@ -359,29 +486,57 @@ section {
     height: 100%;
 }
 .product-info {
-    border: solid black;
+    width: 40%;
+    border: none;
     border-radius: 1em;
     padding: 3em;
     display: block;
     position: relative;
     float: left;
 }
+.product-info-header {
+    color: gray;
+}
 .add-to-cart{
     margin: 1em;
     display: block;
     position: relative;
     float: left;
-    border: solid black;
+    border: solid thin gray;
     border-radius: 1em;
     padding: 2em;
 }
-.add-to-cart #quantity-selector {
+.quantity-selector {
     display: block;
     position: relative;
     float: left;
+    margin: 8px;
+}
+.quantity-selector input {
+    border: none;
+    width: 50px;
+    font-size: 1.25em;
+    line-height: 30px;
+    text-align: center;
+    appearance: none;
+    outline: none;
 }
 
-.add-to-cart .add_to_cart_button {
+.quantity-selector input[type=number]::-webkit-inner-spin-button,
+.quantity-selector input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+}
+
+.decrement-quantity, .increment-quantity {
+    font-size: 1.5em;
+    user-select: none;
+    cursor: pointer;
+    color: gray;
+    background: none;
+    padding: 10px;
+}
+
+.add_to_cart_button {
     display: block;
     position: relative;
     float: left;
@@ -390,12 +545,13 @@ section {
     font-size: 20px;
     color: white;
     border: none;
-    border-radius: 1em;
+    border-radius: .5em;
     background: darkgreen;
     transition: all 0.5s ease;
     cursor: pointer;
 }
-.add-to-cart .add_to_cart_button:hover {
+
+.add_to_cart_button:hover {
     background: lightgreen;
 }
 
@@ -433,12 +589,6 @@ section {
 .orders-section {
     padding: 3em 4em;
 }
-/*.orders-container {*/
-/*    display: flex;*/
-/*    flex-direction: column;*/
-/*    flex-wrap: wrap;*/
-/*    align-content: center;*/
-/*}*/
 
 .order {
     display: flex;
@@ -494,19 +644,12 @@ section {
 .order-product-quantity, .order-product-name, .order-product-unit-price {
     padding: 1em;
 }
+.order-product-unit-price {
+    color: gray;
+}
 .remove-item {
     float:right;
 }
-/*.order-details-table thead tr th, .order-details-table tbody tr td{*/
-/*    border: 1px solid black;*/
-/*    border-collapse: collapse;*/
-/*}*/
-/*.order-details-table {*/
-/*    width: 100%;*/
-/*}*/
-/*.order-details-product-name {*/
-/*    width: 80%;*/
-/*}*/
 
 .info-column {
     min-width: 200px;
@@ -517,4 +660,7 @@ section {
 }
 .info-column-data {
     color: #626262;
-} #f4ba46
+}
+
+
+

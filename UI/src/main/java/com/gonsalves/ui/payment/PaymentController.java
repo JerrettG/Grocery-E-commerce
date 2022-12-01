@@ -1,12 +1,12 @@
-package com.gonsalves.UI.payment;
+package com.gonsalves.ui.payment;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gonsalves.UI.model.CartItem;
-import com.gonsalves.UI.model.CartItemConverter;
-import com.gonsalves.UI.model.CreatePayment;
-import com.gonsalves.UI.model.CreatePaymentResponse;
-import com.gonsalves.UI.model.Order;
+import com.gonsalves.ui.model.CartItem;
+import com.gonsalves.ui.model.CartItemConverter;
+import com.gonsalves.ui.model.CreatePayment;
+import com.gonsalves.ui.model.CreatePaymentResponse;
+import com.gonsalves.ui.model.Order;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.param.PaymentIntentCreateParams;

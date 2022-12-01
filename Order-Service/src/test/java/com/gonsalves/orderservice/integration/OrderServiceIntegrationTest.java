@@ -13,6 +13,7 @@ import com.gonsalves.orderservice.integration.configuration.DynamoDBTestConfigur
 import com.gonsalves.orderservice.repository.OrderRepository;
 import com.gonsalves.orderservice.repository.entity.OrderEntity;
 import com.gonsalves.orderservice.repository.entity.OrderItemEntity;
+import com.gonsalves.orderservice.repository.entity.Status;
 import com.gonsalves.orderservice.service.model.OrderItem;
 import net.andreinc.mockneat.MockNeat;
 import org.junit.jupiter.api.AfterEach;
@@ -34,7 +35,7 @@ import java.util.*;
 
 @Import({DynamoDBTestConfiguration.class, DynamoDBMapperTestConfiguration.class})
 @IntegrationTest
-public class OrderEntityServiceIntegrationTest {
+public class OrderServiceIntegrationTest {
     @Autowired
     MockMvc mockMvc;
     @Autowired
@@ -52,26 +53,24 @@ public class OrderEntityServiceIntegrationTest {
     @BeforeEach
     protected void setup() {
         List<AttributeDefinition> attributeDefinitions= new ArrayList<AttributeDefinition>();
-        attributeDefinitions.add(new AttributeDefinition().withAttributeName("id").withAttributeType("S"));
+        attributeDefinitions.add(new AttributeDefinition().withAttributeName("order_id").withAttributeType("S"));
         attributeDefinitions.add(new AttributeDefinition().withAttributeName("user_id").withAttributeType("S"));
         attributeDefinitions.add(new AttributeDefinition().withAttributeName("payment_intent_id").withAttributeType("S"));
         List<KeySchemaElement> keySchema = Arrays.asList(
-                new KeySchemaElement().withAttributeName("id").withKeyType(KeyType.HASH),
-                new KeySchemaElement().withAttributeName("user_id").withKeyType(KeyType.RANGE));
+                new KeySchemaElement().withAttributeName("user_id").withKeyType(KeyType.HASH),
+                new KeySchemaElement().withAttributeName("order_id").withKeyType(KeyType.RANGE));
 
-        List<KeySchemaElement> gsiKeySchema = Arrays.asList(
+        List<KeySchemaElement> lsiKeySchema = Arrays.asList(
                 new KeySchemaElement().withAttributeName("user_id").withKeyType(KeyType.HASH),
                 new KeySchemaElement().withAttributeName("payment_intent_id").withKeyType(KeyType.RANGE));
-        GlobalSecondaryIndex gsi = new GlobalSecondaryIndex()
-                .withIndexName("user_id-payment_intent_id-index")
-                .withKeySchema(gsiKeySchema)
-                .withProjection(new Projection().withProjectionType(ProjectionType.ALL))
-                .withProvisionedThroughput(new ProvisionedThroughput(1L, 2L));
-
+        LocalSecondaryIndex lsi = new LocalSecondaryIndex()
+                .withIndexName(OrderEntity.PAYMENT_INTENT_ID_INDEX)
+                .withKeySchema(lsiKeySchema)
+                .withProjection(new Projection().withProjectionType(ProjectionType.ALL));
         CreateTableRequest request = new CreateTableRequest()
                 .withTableName("Ecommerce-OrderService-Orders")
                 .withKeySchema(keySchema)
-                .withGlobalSecondaryIndexes(gsi)
+                .withLocalSecondaryIndexes(lsi)
                 .withAttributeDefinitions(attributeDefinitions)
                 .withProvisionedThroughput(new ProvisionedThroughput()
                         .withReadCapacityUnits(5L)
@@ -99,8 +98,7 @@ public class OrderEntityServiceIntegrationTest {
                 .paymentIntentId(UUID.randomUUID().toString())
                 .shippingAddress(mockNeat.addresses().valStr())
                 .orderTotal(mockNeat.doubles().val())
-                .status(mockNeat.strings().valStr())
-                .createdDate(mockNeat.localDates().valStr())
+                .status(Status.PROCESSING)
                 .orderItemEntities(orderItemEntities)
                 .build();
 
@@ -123,7 +121,7 @@ public class OrderEntityServiceIntegrationTest {
         String userId = orderEntity.getUserId();
 
         //WHEN
-        String jsonResponse = mockMvc.perform(get(String.format("/api/v1/orderService/orders?userId=%s", userId))
+        String jsonResponse = mockMvc.perform(get(String.format("/api/v1/orderService/order/all/user/%s", userId))
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
         //THEN
@@ -131,7 +129,7 @@ public class OrderEntityServiceIntegrationTest {
                 .andReturn().getResponse().getContentAsString();
         OrdersListResponse response = mapper.readValue(jsonResponse, OrdersListResponse.class);
 
-        Assertions.assertEquals(1, response.getOrderResponsesList().size());
+        Assertions.assertEquals(1, response.getOrderList().size());
     }
 
     @Test
@@ -140,7 +138,7 @@ public class OrderEntityServiceIntegrationTest {
         String userId = orderEntity.getUserId();
         String orderId = orderEntity.getId();
         //WHEN
-        String jsonResponse = mockMvc.perform(get(String.format("/api/v1/orderService/order/{orderId}?userId=%s", userId),orderId)
+        String jsonResponse = mockMvc.perform(get("/api/v1/orderService/order/{orderId}/user/{userId}", orderId, userId)
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 //THEN
@@ -158,7 +156,7 @@ public class OrderEntityServiceIntegrationTest {
         String userId = orderEntity.getUserId();
         String orderId = UUID.randomUUID().toString();
         //WHEN
-         mockMvc.perform(get(String.format("/api/v1/orderService/order/{orderId}?userId=%s", userId),orderId)
+         mockMvc.perform(get("/api/v1/orderService/order/{orderId}/user{userId}", orderId, userId)
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 //THEN
@@ -173,7 +171,7 @@ public class OrderEntityServiceIntegrationTest {
         String paymentIntentId = UUID.randomUUID().toString();
         String shippingAddress = mockNeat.addresses().valStr();
         double orderTotal = mockNeat.doubles().val();
-        String status = mockNeat.strings().valStr();
+        String status = Status.PROCESSING.toString();
         List<OrderItem> orderItems = Arrays.asList(new OrderItem(
                 mockNeat.names().valStr(),
                 mockNeat.urls().valStr(),
@@ -192,11 +190,11 @@ public class OrderEntityServiceIntegrationTest {
                 .content(mapper.writeValueAsString(createRequest)))
         //THEN
                 .andExpect(status().isCreated());
-        mockMvc.perform(get(String.format("/api/v1/orderService/orders?userId=%s",userId))
+        mockMvc.perform(get("/api/v1/orderService/order/all/user/{userId}",userId)
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.orderResponsesList.length()").value(2));
+                .andExpect(jsonPath("$.orderList.length()").value(2));
     }
 
     @Test
@@ -207,7 +205,7 @@ public class OrderEntityServiceIntegrationTest {
                 orderEntity.getPaymentIntentId(),
                 orderEntity.getShippingAddress(),
                 orderEntity.getOrderTotal(),
-                orderEntity.getStatus(),
+                orderEntity.getStatus().toString(),
                 Arrays.asList(new OrderItem(
                         mockNeat.names().valStr(),
                         mockNeat.urls().valStr(),
@@ -229,10 +227,10 @@ public class OrderEntityServiceIntegrationTest {
     public void updateOrder_existingOrder_updatesOrder() throws Exception {
         //GIVEN
         String userId = orderEntity.getUserId();
-        String updatedStatus = "SHIPPING";
+        String updatedStatus = Status.OUT_FOR_DELIVERY.toString();
         OrderUpdateRequest updateRequest = new OrderUpdateRequest(
-                userId,
                 orderId,
+                userId,
                 orderEntity.getShippingAddress(),
                 orderEntity.getOrderTotal(),
                 updatedStatus,
@@ -259,7 +257,7 @@ public class OrderEntityServiceIntegrationTest {
                 .content(mapper.writeValueAsString(updateRequest)))
         //THEN
                 .andExpect(status().isAccepted());
-        mockMvc.perform(get(String.format("/api/v1/orderService/order/{orderId}?userId=%s", userId),orderId)
+        mockMvc.perform(get("/api/v1/orderService/order/{orderId}/user/{userId}", orderId, userId)
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 //THEN
@@ -270,17 +268,70 @@ public class OrderEntityServiceIntegrationTest {
     }
 
     @Test
-    public void updateOrder_notExistingOrder_doesNotUpdateOrder() {
+    public void updateOrder_notExistingOrder_doesNotUpdateOrder() throws Exception{
+        //GIVEN
+        String userId = orderEntity.getUserId();
+        String updatedStatus = "SHIPPING";
+        String invalidOrderId = UUID.randomUUID().toString();
+        OrderUpdateRequest updateRequest = new OrderUpdateRequest(
+                invalidOrderId,
+                userId,
+                orderEntity.getShippingAddress(),
+                orderEntity.getOrderTotal(),
+                updatedStatus,
+                Arrays.asList(
+                        new OrderItem(
+                                mockNeat.names().valStr(),
+                                mockNeat.urls().valStr(),
+                                mockNeat.ints().range(1,10).val(),
+                                mockNeat.doubles().val()
+                        ),
+                        new OrderItem(
+                                mockNeat.names().valStr(),
+                                mockNeat.urls().valStr(),
+                                mockNeat.ints().range(1,10).val(),
+                                mockNeat.doubles().val()
+                        )
+                )
 
+        );
+        //WHEN
+        mockMvc.perform(put("/api/v1/orderService/order")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(updateRequest)))
+        //THEN
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    public void deleteOrder_existingOrder_deletesOrder() {
+    public void deleteOrder_existingOrder_deletesOrder() throws Exception{
+        //GIVEN
+        String userId = orderEntity.getUserId();
+        //WHEN
+        mockMvc.perform(delete("/api/v1/orderService/order/{orderId}/user/{userId}",orderId, userId)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON))
+        //THEN
+                .andExpect(status().isAccepted());
+        mockMvc.perform(get("/api/v1/orderService/order/all/user/{userId}",userId)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderList.length()").value(0));
 
     }
     @Test
-    public void deleteOrder_notExistingOrder_doesNotDeleteOrder() {
-
+    public void deleteOrder_notExistingOrder_doesNotDeleteOrder() throws Exception{
+        //GIVEN
+        String userId = orderEntity.getUserId();
+        String invalidOrderId = UUID.randomUUID().toString();
+        //WHEN
+        mockMvc.perform(delete("/api/v1/orderService/order/{orderId}/user/{userId}",invalidOrderId, userId)
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON))
+        //THEN
+                .andExpect(status().isBadRequest());
     }
 
 }

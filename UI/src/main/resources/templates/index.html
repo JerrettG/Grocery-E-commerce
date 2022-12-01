@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Grocery E-commerce</title>
     <link th:href="@{/css/style.css}" rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
@@ -19,9 +19,11 @@
 
         <h1>All Products</h1>
 
-        <ul class="product-catalog">
-                <th:block th:each="product: ${products}" th:insert="fragments :: product-overview"></th:block>
-        </ul>
+        <ul class="product-catalog"></ul>
     </section>
 </body>
+<script th:inline="javascript">
+    const products = /*[[${products}]]*/ '';
+</script>
+<script type=text/javascript th:src="@{/js/index.js}"></script>
 </html>

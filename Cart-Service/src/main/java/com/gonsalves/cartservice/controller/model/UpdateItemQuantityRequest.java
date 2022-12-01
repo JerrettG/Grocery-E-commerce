@@ -1,7 +1,16 @@
-package com.gonsalves.CartService.controller.model;
+package com.gonsalves.cartservice.controller.model;
 
-public class UpdateItemInCartRequest {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UpdateItemQuantityRequest {
 
+    private String id;
+    private String userId;
+    private int updatedQuantity;
 
 }

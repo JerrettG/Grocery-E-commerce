@@ -1,8 +1,8 @@
-package com.gonsalves.UI.payment;
+package com.gonsalves.ui.payment;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gonsalves.UI.model.Order;
+import com.gonsalves.ui.model.Order;
 import com.google.gson.JsonSyntaxException;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.*;
@@ -17,22 +17,27 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @RestController
 public class WebhookController {
 
-    @Autowired
-    ObjectMapper mapper;
+    private final ObjectMapper mapper;
 
-    RestTemplate restTemplate = new RestTemplate();
+    private final WebClient webClient;
 
     @Value("${stripe.webhook.secret}")
-    private String endpointSecret = "";
+    private String endpointSecret;
+    @Autowired
+    public WebhookController(ObjectMapper mapper, WebClient webClient) {
+        this.mapper = mapper;
+        this.webClient = webClient;
+    }
 
     @PostMapping("/stripe/events")
     public String handleStripeEvent(@RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader) throws JsonProcessingException {
-        System.out.println("hello");
         if (sigHeader == null)
             return "";
         Event event;
@@ -76,8 +81,12 @@ public class WebhookController {
                 log.info("Payment for " + paymentIntent.getAmount() + " succeeded.");
                 Order body = mapper.readValue(paymentIntent.getDescription(), Order.class);
                 body.setPaymentIntentId(paymentIntent.getId());
-                ResponseEntity<String> response = restTemplate.postForEntity("http://localhost:8087/api/v1/orderService/order",body, String.class);
-                restTemplate.delete(String.format("http://localhost:8083/api/v1/cartService/cart?userId=%s", body.getUserId()));
+                ResponseEntity<String> response = webClient.post()
+                        .uri("/api/v1/orderService/order")
+                        .body(Mono.just(body), Order.class).retrieve().toEntity(String.class).block();
+                webClient.delete()
+                        .uri("/api/v1/cartService/cart/{userId}", body.getUserId())
+                        .retrieve().bodyToMono(String.class).block();
                 break;
             case "payment_method.attached":
                 PaymentMethod paymentMethod = (PaymentMethod) stripeObject;

@@ -1,4 +1,4 @@
-package com.gonsalves.customerprofileservice;
+package com.gonsalves.orderservice;
 
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;

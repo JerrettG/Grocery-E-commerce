@@ -1,39 +1,44 @@
 package com.gonsalves.customerprofileservice.controller;
 
-import com.gonsalves.customerprofileservice.entity.CustomerProfile;
+import com.gonsalves.customerprofileservice.controller.model.CustomerProfileCreateRequest;
+import com.gonsalves.customerprofileservice.controller.model.CustomerProfileRequest;
+import com.gonsalves.customerprofileservice.controller.model.CustomerProfileResponse;
+import com.gonsalves.customerprofileservice.controller.model.CustomerProfileUpdateRequest;
+import com.gonsalves.customerprofileservice.repository.entity.CustomerProfileEntity;
 import com.gonsalves.customerprofileservice.exception.CustomerProfileAlreadyExistsException;
 import com.gonsalves.customerprofileservice.exception.CustomerProfileNotFoundException;
-import com.gonsalves.customerprofileservice.repository.CustomerProfileRepository;
 import com.gonsalves.customerprofileservice.service.CustomerProfileService;
+import com.gonsalves.customerprofileservice.service.model.CustomerProfile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/customerProfileService")
 public class CustomerProfileController {
 
-    @Autowired
-    CustomerProfileService customerProfileService;
 
+    private final CustomerProfileService customerProfileService;
+    @Autowired
+    public CustomerProfileController(CustomerProfileService customerProfileService) {
+        this.customerProfileService = customerProfileService;
+    }
     @GetMapping(value = "/user/{userId}")
-    public ResponseEntity<CustomerProfile> getCustomerProfileByUserId(@PathVariable("userId") String userId) {
+    public ResponseEntity<CustomerProfileResponse> getCustomerProfileByUserId(@PathVariable("userId") String userId) {
         try {
             CustomerProfile customerProfile = customerProfileService.loadCustomerByUserId(userId);
-            return new ResponseEntity<>(customerProfile, HttpStatus.OK);
+            CustomerProfileResponse response = convertToCustomerProfileResponse(customerProfile);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (CustomerProfileNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
-    @PostMapping(path="/user",  consumes = "application/xml;charset=UTF-8", produces = "application/xml;charset=UTF-8")
-    public ResponseEntity<String> createCustomerProfile(@RequestBody CustomerProfile profile) {
+    @PostMapping(path="/user")
+    public ResponseEntity<String> createCustomerProfile(@RequestBody CustomerProfileCreateRequest request) {
         try {
-            if (profile.getId().isEmpty())
-                profile.setId(null);
-            customerProfileService.createCustomerProfile(profile);
+            customerProfileService.createCustomerProfile(convertToProfile(request));
             return new ResponseEntity<>("Customer profile created successfully.", HttpStatus.CREATED);
         } catch (CustomerProfileAlreadyExistsException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
@@ -42,9 +47,9 @@ public class CustomerProfileController {
 
 
     @PutMapping("/user")
-    public ResponseEntity<String> updateCustomerProfile(@RequestBody CustomerProfile profile) {
+    public ResponseEntity<String> updateCustomerProfile(@RequestBody CustomerProfileUpdateRequest request) {
         try {
-            customerProfileService.updateCustomerProfile(profile);
+            customerProfileService.updateCustomerProfile(convertToProfile(request));
             return new ResponseEntity<>("Customer profile updated successfully.", HttpStatus.ACCEPTED);
         } catch (CustomerProfileNotFoundException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -52,13 +57,44 @@ public class CustomerProfileController {
     }
 
     @DeleteMapping("/user/{userId}")
-    public ResponseEntity<String> deleteCustomerProfile(@PathVariable("userId") String userId) {
-        try {
-            customerProfileService.deleteCustomerProfile(userId);
-            return new ResponseEntity<>("Customer profile deleted successfully.", HttpStatus.ACCEPTED);
-        } catch (CustomerProfileNotFoundException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<String> deleteCustomerProfile(
+            @RequestParam(name = "eraseData", defaultValue = "false") boolean eraseData,
+            @PathVariable("userId") String userId) {
+        if (eraseData) {
+            try {
+                customerProfileService.deleteCustomerProfile(userId);
+                return new ResponseEntity<>("Customer data erased successfully.", HttpStatus.ACCEPTED);
+            } catch (CustomerProfileNotFoundException e) {
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            }
         }
+        else {
+            try {
+                customerProfileService.deactivateCustomerProfile(userId);
+                return new ResponseEntity<>("Customer profile deleted successfully.", HttpStatus.ACCEPTED);
+            } catch (CustomerProfileNotFoundException e) {
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            }
+        }
+    }
+
+    private CustomerProfileResponse convertToCustomerProfileResponse(CustomerProfile profile) {
+        return new CustomerProfileResponse(
+                profile.getEmail(),
+                profile.getFirstName(),
+                profile.getLastName(),
+                profile.getShippingAddress(),
+                profile.getStatus());
+    }
+    
+    private CustomerProfile convertToProfile(CustomerProfileRequest request) {
+        return CustomerProfile.builder()
+                .userId(request.getUserId())
+                .email(request.getEmail())
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .shippingAddress(request.getShippingAddress())
+                .build();
     }
 
 }

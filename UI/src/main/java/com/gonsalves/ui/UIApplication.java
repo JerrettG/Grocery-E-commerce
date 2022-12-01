@@ -1,17 +1,17 @@
-package com.gonsalves.UI;
+package com.gonsalves.ui;
 
 import com.stripe.Stripe;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import javax.annotation.PostConstruct;
 
-@EnableDiscoveryClient
 @SpringBootApplication
 public class UIApplication {
     @Value("${stripe.api.key}")
@@ -24,6 +24,21 @@ public class UIApplication {
     @Bean
     @LoadBalanced
     public RestTemplate restTemplate() {return new RestTemplate();}
+
+    @Bean
+    @Profile(value = {"dev","test"})
+    public WebClient devAndTestWebClient() {
+        return WebClient.builder()
+                .baseUrl("http://localhost:8090")
+                .build();
+    }
+    @Bean
+    @Profile(value = "prod")
+    public WebClient prodWebClient() {
+        return WebClient.builder()
+                .baseUrl("http://api-gateway-svc.default.svc.cluster.local")
+                .build();
+    }
 
     public static void main(String[] args) {
         SpringApplication.run(UIApplication.class, args);

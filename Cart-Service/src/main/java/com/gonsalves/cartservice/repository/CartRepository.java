@@ -15,13 +15,17 @@ import java.util.Map;
 
 @Repository
 public class CartRepository {
-    @Autowired
-    DynamoDBMapper dynamoDBMapper;
+    
+    private final DynamoDBMapper mapper;
 
+    @Autowired
+    public CartRepository(DynamoDBMapper mapper) {
+        this.mapper = mapper;
+    }
 
     //CREATE
     public void create(CartItemEntity cartItemEntity) {
-        dynamoDBMapper.save(cartItemEntity);
+        mapper.save(cartItemEntity);
     }
 
     //READ
@@ -29,10 +33,9 @@ public class CartRepository {
         CartItemEntity cartItemEntity = new CartItemEntity();
         cartItemEntity.setUserId(userId);
         DynamoDBQueryExpression<CartItemEntity> queryExpression = new DynamoDBQueryExpression<CartItemEntity>()
-                .withIndexName("user_id-product_id-index")
                 .withHashKeyValues(cartItemEntity)
                 .withConsistentRead(false);
-        return dynamoDBMapper.query(CartItemEntity.class, queryExpression);
+        return mapper.query(CartItemEntity.class, queryExpression);
     }
 
     public List<CartItemEntity> loadCartItem(String userId, String productId) {
@@ -42,37 +45,38 @@ public class CartRepository {
         expected.put(":product_id", new AttributeValue(productId));
 
         DynamoDBQueryExpression<CartItemEntity> queryExpression = new DynamoDBQueryExpression<CartItemEntity>()
-                .withIndexName("user_id-product_id-index")
+                .withIndexName(CartItemEntity.PRODUCT_ID_INDEX)
                 .withKeyConditionExpression("user_id = :user_id and product_id = :product_id")
                 .withExpressionAttributeValues(expected)
                 .withConsistentRead(false);
 
-        return dynamoDBMapper.query(CartItemEntity.class, queryExpression);
+        return mapper.query(CartItemEntity.class, queryExpression);
     }
 
     //UPDATE
     public void updateCartItem(CartItemEntity cartItemEntity) {
-        dynamoDBMapper.save(cartItemEntity,
+        mapper.save(cartItemEntity,
                 new DynamoDBSaveExpression()
                         .withExpectedEntry(
-                                "id",
+                                "user_id",
                                 new ExpectedAttributeValue(
-                                        new AttributeValue(cartItemEntity.getId())))
-                        .withExpectedEntry(
-                                "product_id",
-                                new ExpectedAttributeValue(
-                                        new AttributeValue(cartItemEntity.getProductId())
+                                        new AttributeValue(cartItemEntity.getUserId())
                                 )
                         )
+                        .withExpectedEntry(
+                                "item_id",
+                                new ExpectedAttributeValue(
+                                        new AttributeValue(cartItemEntity.getId())))
+
         );
     }
 
     //DELETE
-    public void removeItem(CartItemEntity cartItemEntity) {dynamoDBMapper.delete(cartItemEntity);
+    public void removeItem(CartItemEntity cartItemEntity) {mapper.delete(cartItemEntity);
     }
 
     public void clearCart(String userId) {
         List<CartItemEntity> resources = loadAllCartItems(userId);
-        dynamoDBMapper.batchDelete(resources);
+        mapper.batchDelete(resources);
     }
 }

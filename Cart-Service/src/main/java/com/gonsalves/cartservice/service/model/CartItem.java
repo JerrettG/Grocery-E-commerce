@@ -1,4 +1,4 @@
-package com.gonsalves.cartservice.service.Cart;
+package com.gonsalves.cartservice.service.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,10 +1,10 @@
-package com.gonsalves.CartService.service.model;
+package com.gonsalves.cartservice.controller.model;
 
-import com.gonsalves.CartService.entity.CartItem;
+
+import com.gonsalves.cartservice.service.model.CartItem;
 import lombok.Data;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 @Data
 public class CartResponse {
@@ -14,14 +14,6 @@ public class CartResponse {
     public CartResponse() {
         this.cartItems = new ArrayList<>();
         this.subtotal = 0d;
-    }
-    public CartResponse(CartItem[] cartItems) {
-        this.cartItems = new ArrayList(Arrays.asList(cartItems));
-        this.subtotal = 0d;
-    }
-
-    public List<CartItem> getCartItems() {
-        return cartItems;
     }
     public void setCartItems(List<CartItem> cartItems) {
     this.cartItems = cartItems;
