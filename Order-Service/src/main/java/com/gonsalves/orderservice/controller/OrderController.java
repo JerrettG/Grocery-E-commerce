@@ -30,60 +30,42 @@ class OrderController {
     public ResponseEntity<OrdersListResponse> getAllOrdersForUserId(@PathVariable String userId) {
         List<Order> orders = orderService.getAllOrdersByUserId(userId);
         List<OrderResponse> orderResponses = new ArrayList<>();
-        orders.forEach(order -> orderResponses.add(new OrderResponse(
-                order.getId(),
-                order.getUserId(),
-                order.getShippingAddress(),
-                order.getOrderTotal(),
-                order.getStatus(),
-                order.getOrderItems(),
-                order.getCreatedDate()
-                )
-            )
-        );
-
+        orders.forEach(order -> orderResponses.add(convertToResponse(order)));
         OrdersListResponse response = new OrdersListResponse(orderResponses);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return ResponseEntity.ok().body(response);
     }
     @GetMapping(value = "/order/{orderId}/user/{userId}")
     public ResponseEntity<OrderResponse> getOrderByOrderId(@PathVariable("orderId") String orderId,
                                                            @PathVariable( "userId") String userId) {
         try {
             Order order = orderService.getOrderByOrderId(userId, orderId);
-            OrderResponse response = new OrderResponse(
-                    order.getId(),
-                    order.getUserId(),
-                    order.getShippingAddress(),
-                    order.getOrderTotal(),
-                    order.getStatus(),
-                    order.getOrderItems(),
-                    order.getCreatedDate()
-            );
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            OrderResponse response = convertToResponse(order);
+            return ResponseEntity.ok().body(response);
         } catch (OrderNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.notFound().build();
         }
     }
     @PostMapping(value = "/order")
-    public ResponseEntity<String> createOrder(@RequestBody OrderCreateRequest request){
+    public ResponseEntity<OrderResponse> createOrder(@RequestBody OrderCreateRequest request){
         try {
-            Order order = createOrderFromRequest(request);
+            Order order = convertToOrderFromRequest(request);
             order.setPaymentIntentId(request.getPaymentIntentId());
-            orderService.createOrder(order);
-            return new ResponseEntity<>("OrderEntity created successfully.", HttpStatus.CREATED);
+            Order createdOrder = orderService.createOrder(order);
+            OrderResponse response = convertToResponse(createdOrder);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (OrderAlreadyExistsException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
     }
     @PutMapping(value = "/order")
     public ResponseEntity<String> updateOrder(@RequestBody OrderUpdateRequest request){
         try {
-            Order order = createOrderFromRequest(request);
+            Order order = convertToOrderFromRequest(request);
             order.setId(request.getId());
             orderService.updateOrder(order);
             return new ResponseEntity<>("OrderEntity updated successfully.", HttpStatus.ACCEPTED);
         } catch (OrderNotFoundException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
     @DeleteMapping(value = "/order/{orderId}/user/{userId}")
@@ -94,11 +76,11 @@ class OrderController {
             orderService.deleteOrder(order);
              return new ResponseEntity<>("OrderEntity deleted successfully.", HttpStatus.ACCEPTED);
         } catch (OrderNotFoundException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 
-    private Order createOrderFromRequest(OrderRequest request) {
+    private Order convertToOrderFromRequest(OrderRequest request) {
         return Order.builder()
                 .userId(request.getUserId())
                 .shippingAddress(request.getShippingAddress())
@@ -106,6 +88,18 @@ class OrderController {
                 .status(request.getStatus())
                 .orderItems(request.getOrderItems())
                 .build();
+    }
+
+    private OrderResponse convertToResponse(Order order) {
+        return new OrderResponse(
+                order.getId(),
+                order.getUserId(),
+                order.getShippingAddress(),
+                order.getOrderTotal(),
+                order.getStatus(),
+                order.getOrderItems(),
+                order.getCreatedDate()
+        );
     }
 
 }

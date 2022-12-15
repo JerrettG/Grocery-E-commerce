@@ -27,12 +27,11 @@
                     <input type="number" name="quantity" form="add-to-cart" value="1">
                     <span class="increment-quantity" onclick="increaseQuantity(this)">+</span>
                 </div>
-                <form th:action="@{|/product/${product.getName()}/addToCart|}" method="POST" th:object="${cartItem}" id="add-to-cart">
-
+                <form th:action="@{|/services/product/${product.getName()}/addToCart|}" method="POST" th:object="${cartItem}" id="add-to-cart">
                     <input type="hidden" th:value="${product.getProductId()}" name="productId">
                     <input type="hidden" th:value="${product.getName()}" name="productName">
                     <input type="hidden" th:value="${product.getPrice()}" name="productPrice">
-                    <input type="hidden"th:value="${product.getImageUrl()}" name="productImageUrl">
+                    <input type="hidden" th:value="${product.getImageUrl()}" name="productImageUrl">
                 </form>
                 <button class="add_to_cart_button" type="submit" form="add-to-cart">Add to cart</button>
             </div>

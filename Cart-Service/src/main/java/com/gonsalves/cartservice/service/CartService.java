@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
+
 @Slf4j
 @Service
 public class CartService {
@@ -33,14 +35,8 @@ public class CartService {
             log.info(String.format("Attempted to add item with name %s to cart, but item already exists. Quantity updated.", cartItem.getProductName()));
         }
         else {
-            CartItemEntity entity = CartItemEntity.builder()
-                    .userId(cartItem.getUserId())
-                    .quantity(cartItem.getQuantity())
-                    .productId(cartItem.getProductId())
-                    .productName(cartItem.getProductName())
-                    .productImageUrl(cartItem.getProductImageUrl())
-                    .productPrice(cartItem.getProductPrice())
-                    .build();
+            cartItem.setId(UUID.randomUUID().toString());
+            CartItemEntity entity = convertToEntity(cartItem);
             cartRepository.create(entity);
             log.info(String.format("Item with name %s added to cart successfully.", entity.getProductName()));
         }

@@ -5,28 +5,18 @@ import com.amazonaws.services.dynamodbv2.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gonsalves.cartservice.IntegrationTest;
 import com.gonsalves.cartservice.controller.model.AddItemToCartRequest;
-import com.gonsalves.cartservice.controller.model.CartResponse;
-import com.gonsalves.cartservice.controller.model.RemoveItemFromCartRequest;
+import com.gonsalves.cartservice.controller.model.CartItemResponse;
 import com.gonsalves.cartservice.controller.model.UpdateItemQuantityRequest;
 import com.gonsalves.cartservice.integration.configuration.DynamoDBMapperTestConfiguration;
 import com.gonsalves.cartservice.integration.configuration.DynamoDBTestConfiguration;
 import com.gonsalves.cartservice.repository.entity.CartItemEntity;
-import com.gonsalves.cartservice.service.model.CartItem;
 import net.andreinc.mockneat.MockNeat;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -34,22 +24,11 @@ import java.util.*;
 @Import({DynamoDBMapperTestConfiguration.class, DynamoDBTestConfiguration.class})
 @IntegrationTest
 class CartServiceIntegrationTest {
-
     @Autowired
     private MockMvc mockMvc;
+    private Utility utility;
     @Autowired
-    AmazonDynamoDB amazonDynamoDB;
-
-    private String firstItemId;
-    private String firstItemProductId;
-    private int firstItemQuantity;
-    private double firstItemPrice;
-    private String firstItemName;
-    private String firstItemProductImageUrl;
-    private String secondItemId;
-    private String secondItemProductId;
-    private int secondItemQuantity;
-    private double secondItemPrice;
+    private AmazonDynamoDB amazonDynamoDB;
     private String userId;
     private final MockNeat mockNeat = MockNeat.threadLocal();
 
@@ -57,6 +36,7 @@ class CartServiceIntegrationTest {
 
     @BeforeEach
     protected void setup() {
+        utility = new Utility(mockMvc);
         List<AttributeDefinition> attributeDefinitions= new ArrayList<AttributeDefinition>();
         attributeDefinitions.add(new AttributeDefinition().withAttributeName("item_id").withAttributeType("S"));
         attributeDefinitions.add(new AttributeDefinition().withAttributeName("user_id").withAttributeType("S"));
@@ -88,64 +68,44 @@ class CartServiceIntegrationTest {
         } catch (AmazonDynamoDBException e) {
             System.out.println(e.getMessage());
         }
-
-        this.firstItemId = UUID.randomUUID().toString();
-        this.firstItemProductId = UUID.randomUUID().toString();
-        this.secondItemId = UUID.randomUUID().toString();
-        this.secondItemProductId = UUID.randomUUID().toString();
         this.userId = UUID.randomUUID().toString();
-        this.firstItemPrice = mockNeat.doubles().val();
-        this.secondItemPrice = mockNeat.doubles().val();
-        this.firstItemQuantity = mockNeat.ints().range(1,10).val();
-        this.secondItemQuantity = mockNeat.ints().range(1,10).val();
-        this.firstItemName = mockNeat.cars().valStr();
-        this.firstItemProductImageUrl = mockNeat.urls().valStr();
 
-        Map<String, AttributeValue> firstAttributeValueMap = new HashMap<>();
-        firstAttributeValueMap.put("item_id", new AttributeValue().withS(firstItemId));
-        firstAttributeValueMap.put("user_id", new AttributeValue().withS(userId));
-        firstAttributeValueMap.put("product_id", new AttributeValue().withS(firstItemProductId));
-        firstAttributeValueMap.put("product_price", new AttributeValue().withN(String.valueOf(firstItemPrice)));
-        firstAttributeValueMap.put("quantity", new AttributeValue().withN(String.valueOf(firstItemQuantity)));
-        firstAttributeValueMap.put("product_image_url", new AttributeValue().withS(firstItemProductImageUrl));
-        firstAttributeValueMap.put("product_name", new AttributeValue().withS(firstItemName));
-
-        Map<String, AttributeValue> secondAttributeValueMap = new HashMap<>();
-        secondAttributeValueMap.put("item_id", new AttributeValue().withS(secondItemId));
-        secondAttributeValueMap.put("user_id", new AttributeValue().withS(userId));
-        secondAttributeValueMap.put("product_id", new AttributeValue().withS(secondItemProductId));
-        secondAttributeValueMap.put("product_price", new AttributeValue().withN(String.valueOf(secondItemPrice)));
-        secondAttributeValueMap.put("quantity", new AttributeValue().withN(String.valueOf(secondItemQuantity)));
-        secondAttributeValueMap.put("product_image_url", new AttributeValue().withS(mockNeat.urls().valStr()));
-        secondAttributeValueMap.put("product_name", new AttributeValue().withS(mockNeat.cars().valStr()));
-        
-        PutItemRequest putItemRequest = new PutItemRequest("Ecommerce-CartService-CartItems", firstAttributeValueMap);
-        amazonDynamoDB.putItem(putItemRequest);
-
-        putItemRequest = new PutItemRequest("Ecommerce-CartService-CartItems", secondAttributeValueMap);
-        amazonDynamoDB.putItem(putItemRequest);
     }
 
-    @AfterEach
-    public void cleanUp(){
-        DeleteTableRequest request = new DeleteTableRequest();
-        request.setTableName("Ecommerce-CartService-CartItems");
-
-        amazonDynamoDB.deleteTable(request);
-    }
 
     @Test
     public void getCart_returnsAllCartItemsForUserId() throws Exception {
         //GIVEN
-        double expectedSubtotal = (firstItemQuantity*firstItemPrice) + (secondItemPrice*secondItemQuantity);
+        AddItemToCartRequest request1 = new AddItemToCartRequest(
+                userId,
+                mockNeat.ints().range(1,10).val(),
+                UUID.randomUUID().toString(),
+                mockNeat.cars().valStr(),
+                mockNeat.urls().valStr(),
+                mockNeat.doubles().range(0.00, 100.00).val()
+        );
+        AddItemToCartRequest request2 = new AddItemToCartRequest(
+                userId,
+                mockNeat.ints().range(1,10).val(),
+                UUID.randomUUID().toString(),
+                mockNeat.cars().valStr(),
+                mockNeat.urls().valStr(),
+                mockNeat.doubles().range(0.00, 100.00).val()
+        );
+        utility.cartServiceClient.addCartItem(request1)
+                .andExpect(status().isCreated());
+        utility.cartServiceClient.addCartItem(request2)
+                .andExpect(status().isCreated());
+
+        double expectedSubtotal = (request1.getQuantity()*request1.getProductPrice()) + (request2.getQuantity()*request2.getProductPrice());
         //WHEN
-        mockMvc.perform(get("/api/v1/cartService/cart/{userId}", userId)
-                .accept(MediaType.APPLICATION_JSON)
-                )
+        utility.cartServiceClient.getCart(userId)
         //THEN
-                .andExpect(jsonPath("$.cartItems.length()").value(2))
-                .andExpect(jsonPath("$.subtotal").value(expectedSubtotal))
-                .andExpect(status().isOk());
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("cartItems.length()").value(2),
+                        jsonPath("subtotal").value(expectedSubtotal)
+                );
     }
 
     @Test
@@ -158,13 +118,10 @@ class CartServiceIntegrationTest {
         double productPrice = mockNeat.doubles().val();
         int quantity = mockNeat.ints().upperBound(10).val();
         AddItemToCartRequest request = new AddItemToCartRequest(userId,quantity, productId, productName, productImageUrl, productPrice);
-        String json = mapper.writeValueAsString(request);
+
 
         //WHEN
-        mockMvc.perform(post("/api/v1/cartService/cart/{userId}/cartItem", userId)
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json))
+        utility.cartServiceClient.addCartItem(request)
         //THEN
                 .andExpect(status().isCreated());
     }
@@ -172,65 +129,68 @@ class CartServiceIntegrationTest {
     @Test
     public void addCartItem_itemAlreadyExist_itemQuantityIncremented() throws Exception {
         //GIVEN
+        AddItemToCartRequest request1 = new AddItemToCartRequest(
+                userId,
+                mockNeat.ints().range(1,10).val(),
+                UUID.randomUUID().toString(),
+                mockNeat.cars().valStr(),
+                mockNeat.urls().valStr(),
+                mockNeat.doubles().range(0.00, 100.00).val()
+        );
+        utility.cartServiceClient.addCartItem(request1)
+                .andExpect(status().isCreated());
         int additionalQuantity = 3;
-        int expectedQuantity = firstItemQuantity + additionalQuantity;
-        AddItemToCartRequest request = new AddItemToCartRequest(
+        int expectedQuantity = request1.getQuantity() + additionalQuantity;
+        AddItemToCartRequest request2 = new AddItemToCartRequest(
                 userId,
                 additionalQuantity,
-                firstItemProductId,
-                firstItemName,
-                firstItemProductImageUrl,
-                firstItemPrice);
-
+                request1.getProductId(),
+                mockNeat.cars().valStr(),
+                mockNeat.urls().valStr(),
+                mockNeat.doubles().range(0.00, 100.00).val()
+        );
         //WHEN
-        mockMvc.perform(post("/api/v1/cartService/cart/{userId}/cartItem", userId)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(request)))
+        utility.cartServiceClient.addCartItem(request2)
                 .andExpect(status().isCreated());
         //THEN
-        String jsonReponse = mockMvc.perform(get("/api/v1/cartService/cart/{userId}", userId)
-                        .accept(MediaType.APPLICATION_JSON)
-                )
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-
-        CartResponse response = mapper.readValue(jsonReponse, CartResponse.class);
-        CartItem firstCartItem = null;
-        for (CartItem cartItem : response.getCartItems())
-            if (cartItem.getId().equals(firstItemId))
-                firstCartItem = cartItem;
-
-        Assertions.assertEquals(expectedQuantity, firstCartItem.getQuantity());
+        utility.cartServiceClient.getCart(userId)
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("cartItems.length()").value(1),
+                        jsonPath("cartItems[0].quantity").value(expectedQuantity)
+                );
     }
 
     @Test
-    public void updateItemQuantity_existingItem_updatesItemQuanity() throws Exception {
+    public void updateItemQuantity_existingItem_updatesItemQuantity() throws Exception {
         //GIVEN
+        AddItemToCartRequest request = new AddItemToCartRequest(
+                userId,
+                mockNeat.ints().range(1,10).val(),
+                UUID.randomUUID().toString(),
+                mockNeat.cars().valStr(),
+                mockNeat.urls().valStr(),
+                mockNeat.doubles().range(0.00, 100.00).val()
+        );
+        String jsonResponse = utility.cartServiceClient.addCartItem(request)
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        CartItemResponse response = mapper.readValue(jsonResponse, CartItemResponse.class);
+        String itemId = response.getId();
         int updatedQuantity = 13;
 
-        UpdateItemQuantityRequest updateRequest = new UpdateItemQuantityRequest(firstItemId, userId, updatedQuantity);
+        UpdateItemQuantityRequest updateRequest = new UpdateItemQuantityRequest(itemId, userId, updatedQuantity);
 
         //WHEN
-        mockMvc.perform(put("/api/v1/cartService/cart/{userId}/cartItem", userId)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(updateRequest)))
+        utility.cartServiceClient.updateItemQuantity(updateRequest)
                 .andExpect(status().isAccepted());
         //THEN
-        String jsonReponse = mockMvc.perform(get("/api/v1/cartService/cart/{userId}", userId)
-                        .accept(MediaType.APPLICATION_JSON)
-                )
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-
-        CartResponse response = mapper.readValue(jsonReponse, CartResponse.class);
-        CartItem firstCartItem = null;
-        for (CartItem cartItem : response.getCartItems())
-            if (cartItem.getId().equals(firstItemId))
-                firstCartItem = cartItem;
-
-        Assertions.assertEquals(updatedQuantity, firstCartItem.getQuantity());
+        utility.cartServiceClient.getCart(userId)
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("cartItems[0].id").value(itemId),
+                        jsonPath("cartItems[0].quantity").value(updatedQuantity)
+                        );
     }
 
     @Test
@@ -238,66 +198,85 @@ class CartServiceIntegrationTest {
         //GIVEN
         String id = UUID.randomUUID().toString();
         String userId = UUID.randomUUID().toString();
-        String productId = UUID.randomUUID().toString();
         int updatedQuantity = 13;
 
         UpdateItemQuantityRequest updateRequest = new UpdateItemQuantityRequest(id, userId, updatedQuantity);
 
         //WHEN
-        mockMvc.perform(put("/api/v1/cartService/cart/{userId}/cartItem", userId)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(updateRequest)))
+        utility.cartServiceClient.updateItemQuantity(updateRequest)
         //THEN
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
 
     }
 
     @Test
     public void removeItem_multipleItemsInCart_removesTheOneItem() throws Exception {
         //GIVEN
+        AddItemToCartRequest request = new AddItemToCartRequest(
+                userId,
+                mockNeat.ints().range(1,10).val(),
+                UUID.randomUUID().toString(),
+                mockNeat.cars().valStr(),
+                mockNeat.urls().valStr(),
+                mockNeat.doubles().range(0.00, 100.00).val()
+        );
+
+        CartItemResponse response = mapper.readValue(
+                utility.cartServiceClient.addCartItem(request)
+                        .andExpect(status().isCreated())
+                        .andReturn().getResponse().getContentAsString(),
+                CartItemResponse.class);
+        String firstItemId = response.getId();
+
+        request = new AddItemToCartRequest(
+                userId,
+                mockNeat.ints().range(1,10).val(),
+                UUID.randomUUID().toString(),
+                mockNeat.cars().valStr(),
+                mockNeat.urls().valStr(),
+                mockNeat.doubles().range(0.00, 100.00).val()
+        );
+
+        response = mapper.readValue(
+                utility.cartServiceClient.addCartItem(request)
+                        .andExpect(status().isCreated())
+                        .andReturn().getResponse().getContentAsString(),
+                CartItemResponse.class);
+        String secondItemId = response.getId();
 
         //WHEN
-        mockMvc.perform(delete("/api/v1/cartService/cart/{userId}/cartItem/{cartItemId}", userId, firstItemId)
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON))
+        utility.cartServiceClient.removeItem(userId, firstItemId)
                 .andExpect(status().isAccepted());
 
         //THEN
-        String jsonGetResponse = mockMvc.perform(get("/api/v1/cartService/cart/{userId}", userId)
-                .accept(MediaType.APPLICATION_JSON)).andReturn().getResponse().getContentAsString();
-
-        CartResponse cartResponse = mapper.readValue(jsonGetResponse, CartResponse.class);
-        boolean succeeded = true;
-
-        for (CartItem cartItem: cartResponse.getCartItems())
-            if (cartItem.getId().equals(firstItemId))
-                succeeded = false;
-
-        Assertions.assertEquals(1, cartResponse.getCartItems().size());
-        Assertions.assertTrue(succeeded);
-        Assertions.assertEquals(secondItemId, cartResponse.getCartItems().get(0).getId());
+        utility.cartServiceClient.getCart(userId)
+                .andExpectAll(
+                        jsonPath("cartItems.length()").value(1),
+                        jsonPath("cartItems[*].id", not(contains(firstItemId))),
+                        jsonPath("cartItems[*].id", contains(secondItemId))
+                );
     }
 
     @Test
     public void clearCart_multipleItemsInCart_allItemsRemoved() throws Exception {
         //GIVEN
-
+        AddItemToCartRequest request = new AddItemToCartRequest(
+                userId,
+                mockNeat.ints().range(1,10).val(),
+                UUID.randomUUID().toString(),
+                mockNeat.cars().valStr(),
+                mockNeat.urls().valStr(),
+                mockNeat.doubles().range(0.00, 100.00).val()
+        );
+        utility.cartServiceClient.addCartItem(request)
+                        .andExpect(status().isCreated());
 
         //WHEN
-        mockMvc.perform(delete("/api/v1/cartService/cart/{userId}",userId)
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON))
+        utility.cartServiceClient.clearCart(userId)
                 .andExpect(status().isAccepted());
 
         //THEN
-        String jsonResponse = mockMvc.perform(get("/api/v1/cartService/cart/{userId}", userId)
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON))
-                        .andExpect(status().isOk())
-                                .andReturn().getResponse().getContentAsString();
-        CartResponse cartResponse = mapper.readValue(jsonResponse, CartResponse.class);
-
-        Assertions.assertEquals(0, cartResponse.getCartItems().size());
+        utility.cartServiceClient.getCart(userId)
+                        .andExpectAll(status().isOk(),jsonPath("cartItems.length()").value(0));
     }
 }

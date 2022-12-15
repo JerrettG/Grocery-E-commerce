@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -38,7 +39,7 @@ public class ProductService {
         List<ProductEntity> results = productRepository.loadProductWithProductName(name);
 
         if (results.size() > 0) {
-            Product productFromDatabase = createProductFromEntity(results.get(0));
+            Product productFromDatabase = convertToProduct(results.get(0));
             cache.addByProductName(productFromDatabase.getName(), productFromDatabase);
             return productFromDatabase;
         }
@@ -55,7 +56,7 @@ public class ProductService {
 
         List<Product> productsFromDatabase = new ArrayList<>();
         productRepository.loadAll()
-                .forEach(entity -> productsFromDatabase.add(createProductFromEntity(entity)));
+                .forEach(entity -> productsFromDatabase.add(convertToProduct(entity)));
         cache.addByCategory("ALL", productsFromDatabase);
         return productsFromDatabase;
     }
@@ -67,7 +68,7 @@ public class ProductService {
 
         List<Product> productsFromDatabase = new ArrayList<>();
         productRepository.loadAllProductsInCategory(Category.valueOf(category)).
-                forEach(entity -> productsFromDatabase.add(createProductFromEntity(entity)));
+                forEach(entity -> productsFromDatabase.add(convertToProduct(entity)));
         cache.addByCategory(category, productsFromDatabase);
         return productsFromDatabase;
     }
@@ -75,20 +76,22 @@ public class ProductService {
 
 
 
-    public void createProduct(Product product) {
+    public Product createProduct(Product product) {
         String productName = product.getName();
             try {
                 loadProductWithProductName(productName);
                 log.error(String.format("Resource with name: %s already exists.", productName));
                 throw new ProductAlreadyExistsException("Cannot create resource. Product with specified name already exists.");
             } catch (ProductNotFoundException e) {
-                productRepository.create(createEntityFromProduct(product));
+                product.setProductId(UUID.randomUUID().toString());
+                productRepository.create(convertToEntity(product));
                 cache.evictByCategory(product.getCategory());
                 log.info(String.format("Created Product with name: %s", productName));
+                return product;
             }
     }
     public void updateProduct(Product product) {
-            ProductEntity entity = createEntityFromProduct(product);
+            ProductEntity entity = convertToEntity(product);
             try {
                 productRepository.update(entity);
                 cache.evictByProductName(product.getName());
@@ -111,7 +114,7 @@ public class ProductService {
             log.info(String.format("Resource with name: %s has been successfully deleted.", product.getName()));
     }
 
-    private Product createProductFromEntity(ProductEntity productEntity) {
+    private Product convertToProduct(ProductEntity productEntity) {
         return Product.builder()
                 .productId(productEntity.getProductId())
                 .name(productEntity.getName())
@@ -123,7 +126,7 @@ public class ProductService {
                 .rating(productEntity.getRating())
                 .build();
     }
-    private ProductEntity createEntityFromProduct(Product product) {
+    private ProductEntity convertToEntity(Product product) {
         return ProductEntity.builder()
                 .productId(product.getProductId())
                 .name(product.getName())

@@ -22,7 +22,7 @@ public class WebSecurityConfiguration {
     @Autowired
     private LogoutHandler logoutHandler;
     private static final String[] WHITE_LIST_URLS = {"/", "/home","/category", "/oauth2/authorization/auth0", "/stripe/events"};
-    private static final String[] CSRF_WHITE_LIST_URLS = {"/stripe/events", "/api/v2/spans",  "/services/**","/payment/create-payment-intent","/api/**/cartService/**",
+    private static final String[] CSRF_WHITE_LIST_URLS = {"/stripe/events", "/api/v2/spans",  "/services/**","/services/**/**/**", "/payment/create-payment-intent","/api/**/cartService/**",
     "/api/**/customerProfileService/**", "/api/**/orderService/**", "/api/v1/productService/product/all"};
 
     @Bean

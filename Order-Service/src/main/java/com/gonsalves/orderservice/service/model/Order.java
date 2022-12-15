@@ -11,14 +11,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Order {
-
-    private String id;
     private String userId;
+    private String id;
     private String paymentIntentId;
     private String shippingAddress;
     private double orderTotal;
     private String status;
     private List<OrderItem> orderItems;
     private String createdDate;
-
 }

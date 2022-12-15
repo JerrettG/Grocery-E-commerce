@@ -1,5 +1,6 @@
 package com.gonsalves.customerprofileservice.controller;
 
+import brave.Response;
 import com.gonsalves.customerprofileservice.controller.model.CustomerProfileCreateRequest;
 import com.gonsalves.customerprofileservice.controller.model.CustomerProfileRequest;
 import com.gonsalves.customerprofileservice.controller.model.CustomerProfileResponse;
@@ -28,10 +29,10 @@ public class CustomerProfileController {
     public ResponseEntity<CustomerProfileResponse> getCustomerProfileByUserId(@PathVariable("userId") String userId) {
         try {
             CustomerProfile customerProfile = customerProfileService.loadCustomerByUserId(userId);
-            CustomerProfileResponse response = convertToCustomerProfileResponse(customerProfile);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            CustomerProfileResponse response = convertToResponse(customerProfile);
+            return ResponseEntity.ok().body(response);
         } catch (CustomerProfileNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.notFound().build();
         }
     }
 
@@ -39,7 +40,7 @@ public class CustomerProfileController {
     public ResponseEntity<String> createCustomerProfile(@RequestBody CustomerProfileCreateRequest request) {
         try {
             customerProfileService.createCustomerProfile(convertToProfile(request));
-            return new ResponseEntity<>("Customer profile created successfully.", HttpStatus.CREATED);
+            return new ResponseEntity<>(HttpStatus.CREATED);
         } catch (CustomerProfileAlreadyExistsException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
         }
@@ -50,9 +51,9 @@ public class CustomerProfileController {
     public ResponseEntity<String> updateCustomerProfile(@RequestBody CustomerProfileUpdateRequest request) {
         try {
             customerProfileService.updateCustomerProfile(convertToProfile(request));
-            return new ResponseEntity<>("Customer profile updated successfully.", HttpStatus.ACCEPTED);
+            return ResponseEntity.accepted().build();
         } catch (CustomerProfileNotFoundException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 
@@ -65,7 +66,7 @@ public class CustomerProfileController {
                 customerProfileService.deleteCustomerProfile(userId);
                 return new ResponseEntity<>("Customer data erased successfully.", HttpStatus.ACCEPTED);
             } catch (CustomerProfileNotFoundException e) {
-                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
             }
         }
         else {
@@ -73,19 +74,19 @@ public class CustomerProfileController {
                 customerProfileService.deactivateCustomerProfile(userId);
                 return new ResponseEntity<>("Customer profile deleted successfully.", HttpStatus.ACCEPTED);
             } catch (CustomerProfileNotFoundException e) {
-                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
             }
         }
     }
 
-    private CustomerProfileResponse convertToCustomerProfileResponse(CustomerProfile profile) {
+    private CustomerProfileResponse convertToResponse(CustomerProfile profile) {
         return new CustomerProfileResponse(
                 profile.getEmail(),
                 profile.getFirstName(),
                 profile.getLastName(),
                 profile.getShippingAddress(),
                 profile.getStatus());
-    }
+    } 
     
     private CustomerProfile convertToProfile(CustomerProfileRequest request) {
         return CustomerProfile.builder()

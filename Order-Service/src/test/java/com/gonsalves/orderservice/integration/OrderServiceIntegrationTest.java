@@ -37,9 +37,9 @@ import java.util.*;
 @IntegrationTest
 public class OrderServiceIntegrationTest {
     @Autowired
-    MockMvc mockMvc;
-    @Autowired
-    OrderRepository orderRepository;
+    private MockMvc mockMvc;
+
+    private Utility utility;
 
     private final MockNeat mockNeat = MockNeat.threadLocal();
 
@@ -47,11 +47,10 @@ public class OrderServiceIntegrationTest {
     @Autowired
     AmazonDynamoDB amazonDynamoDB;
 
-    private OrderEntity orderEntity;
-    private String orderId;
 
     @BeforeEach
     protected void setup() {
+        utility = new Utility(mockMvc);
         List<AttributeDefinition> attributeDefinitions= new ArrayList<AttributeDefinition>();
         attributeDefinitions.add(new AttributeDefinition().withAttributeName("order_id").withAttributeType("S"));
         attributeDefinitions.add(new AttributeDefinition().withAttributeName("user_id").withAttributeType("S"));
@@ -80,85 +79,75 @@ public class OrderServiceIntegrationTest {
         } catch (AmazonDynamoDBException e) {
             System.out.println(e.getMessage());
         }
-        List<OrderItemEntity> orderItemEntities = Arrays.asList(
-                new OrderItemEntity(
-                        mockNeat.names().valStr(),
-                        mockNeat.urls().valStr(),
-                        mockNeat.ints().range(1, 10).val(),
-                        mockNeat.doubles().val()),
-                new OrderItemEntity(
-                        mockNeat.names().valStr(),
-                        mockNeat.urls().valStr(),
-                        mockNeat.ints().range(1, 10).val(),
-                        mockNeat.doubles().val())
-        );
-
-        orderEntity = OrderEntity.builder()
-                .userId(UUID.randomUUID().toString())
-                .paymentIntentId(UUID.randomUUID().toString())
-                .shippingAddress(mockNeat.addresses().valStr())
-                .orderTotal(mockNeat.doubles().val())
-                .status(Status.PROCESSING)
-                .orderItemEntities(orderItemEntities)
-                .build();
-
-        orderRepository.createOrder(orderEntity);
-        orderId = orderRepository.getOrderByPaymentIntentId(orderEntity.getUserId(), orderEntity.getPaymentIntentId()).get(0).getId();
 
     }
 
-    @AfterEach
-    public void cleanUp(){
-        DeleteTableRequest request = new DeleteTableRequest();
-        request.setTableName("Ecommerce-OrderService-Orders");
-
-        amazonDynamoDB.deleteTable(request);
-    }
 
     @Test
     public void getAllOrderForUserId_returnsOrdersForThatUser() throws Exception {
         //GIVEN
-        String userId = orderEntity.getUserId();
+        String userId = UUID.randomUUID().toString();
+        String paymentId = UUID.randomUUID().toString();
+        OrderCreateRequest createRequest = new OrderCreateRequest(
+                userId,
+                paymentId,
+                mockNeat.addresses().valStr(),
+                mockNeat.doubles().val(),
+                Status.PROCESSING.toString(),
+                Arrays.asList(new OrderItem(
+                        mockNeat.names().valStr(),
+                        mockNeat.urls().valStr(),
+                        mockNeat.ints().range(1,10).val(),
+                        mockNeat.doubles().val()
+                ))
+        );
+        utility.orderServiceClient.createOrder(createRequest).andExpect(status().isCreated());
 
         //WHEN
-        String jsonResponse = mockMvc.perform(get(String.format("/api/v1/orderService/order/all/user/%s", userId))
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON))
+        utility.orderServiceClient.getAllOrdersForUserId(userId)
         //THEN
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-        OrdersListResponse response = mapper.readValue(jsonResponse, OrdersListResponse.class);
-
-        Assertions.assertEquals(1, response.getOrderList().size());
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("orderList.length()").value(1)
+                );
     }
 
     @Test
     public void getOrderByOrderId_existingOrder_returnsCorrectOrder() throws Exception {
         //GIVEN
-        String userId = orderEntity.getUserId();
-        String orderId = orderEntity.getId();
-        //WHEN
-        String jsonResponse = mockMvc.perform(get("/api/v1/orderService/order/{orderId}/user/{userId}", orderId, userId)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON))
-                //THEN
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-        OrderResponse response = mapper.readValue(jsonResponse, OrderResponse.class);
+        String userId = UUID.randomUUID().toString();
+        OrderCreateRequest createRequest = new OrderCreateRequest(
+                userId,
+                UUID.randomUUID().toString(),
+                mockNeat.addresses().valStr(),
+                mockNeat.doubles().val(),
+                Status.PROCESSING.toString(),
+                Arrays.asList(new OrderItem(
+                        mockNeat.names().valStr(),
+                        mockNeat.urls().valStr(),
+                        mockNeat.ints().range(1,10).val(),
+                        mockNeat.doubles().val()
+                ))
+        );
 
-        Assertions.assertEquals(orderId, response.getId());
-        Assertions.assertEquals(userId, response.getUserId());
-        Assertions.assertEquals(orderEntity.getCreatedDate(), response.getCreatedDate());
+        String jsonResponse = utility.orderServiceClient.createOrder(createRequest)
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        OrderResponse createResponse = mapper.readValue(jsonResponse, OrderResponse.class);
+        String orderId = createResponse.getId();
+        //WHEN
+        utility.orderServiceClient.getOrderByOrderId(orderId, userId)
+                //THEN
+                .andExpectAll(status().isOk());
+
     }
     @Test
     public void getOrderByOrderId_existingOrder_responseNotFound() throws Exception {
         //GIVEN
-        String userId = orderEntity.getUserId();
+        String userId = UUID.randomUUID().toString();
         String orderId = UUID.randomUUID().toString();
         //WHEN
-         mockMvc.perform(get("/api/v1/orderService/order/{orderId}/user{userId}", orderId, userId)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON))
+        utility.orderServiceClient.getOrderByOrderId(orderId,userId)
                 //THEN
                 .andExpect(status().isNotFound());
     }
@@ -167,7 +156,7 @@ public class OrderServiceIntegrationTest {
     @Test
     public void createOrder_notExistingOrder_createsOrder() throws Exception{
         //GIVEN
-        String userId = orderEntity.getUserId();
+        String userId = UUID.randomUUID().toString();
         String paymentIntentId = UUID.randomUUID().toString();
         String shippingAddress = mockNeat.addresses().valStr();
         double orderTotal = mockNeat.doubles().val();
@@ -178,34 +167,56 @@ public class OrderServiceIntegrationTest {
                 mockNeat.ints().range(1,10).val(),
                 mockNeat.doubles().val()
         ));
-
         OrderCreateRequest createRequest = new OrderCreateRequest(
                 userId, paymentIntentId, shippingAddress,
                 orderTotal, status, orderItems
         );
+
         //WHEN
-        mockMvc.perform(post("/api/v1/orderService/order")
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(createRequest)))
+        utility.orderServiceClient.createOrder(createRequest)
         //THEN
                 .andExpect(status().isCreated());
-        mockMvc.perform(get("/api/v1/orderService/order/all/user/{userId}",userId)
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON))
+        utility.orderServiceClient.getAllOrdersForUserId(userId)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.orderList.length()").value(2));
+                .andExpect(jsonPath("$.orderList.length()").value(1));
     }
 
     @Test
     public void createOrder_existingOrder_doesNotCreateOrder() throws Exception {
         //GIVEN
+        String userId = UUID.randomUUID().toString();
+        String paymentId = UUID.randomUUID().toString();
         OrderCreateRequest createRequest = new OrderCreateRequest(
-                orderEntity.getUserId(),
-                orderEntity.getPaymentIntentId(),
-                orderEntity.getShippingAddress(),
-                orderEntity.getOrderTotal(),
-                orderEntity.getStatus().toString(),
+                userId,
+                paymentId,
+                mockNeat.addresses().valStr(),
+                mockNeat.doubles().val(),
+                Status.PROCESSING.toString(),
+                Arrays.asList(new OrderItem(
+                        mockNeat.names().valStr(),
+                        mockNeat.urls().valStr(),
+                        mockNeat.ints().range(1,10).val(),
+                        mockNeat.doubles().val()
+                ))
+        );
+        utility.orderServiceClient.createOrder(createRequest).andExpect(status().isCreated());
+
+        //WHEN
+        utility.orderServiceClient.createOrder(createRequest)
+        //THEN
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    public void updateOrder_existingOrder_updatesOrder() throws Exception {
+        //GIVEN
+        String userId = UUID.randomUUID().toString();
+        OrderCreateRequest createRequest = new OrderCreateRequest(
+                userId,
+                UUID.randomUUID().toString(),
+                mockNeat.addresses().valStr(),
+                mockNeat.doubles().val(),
+                Status.PROCESSING.toString(),
                 Arrays.asList(new OrderItem(
                         mockNeat.names().valStr(),
                         mockNeat.urls().valStr(),
@@ -214,25 +225,17 @@ public class OrderServiceIntegrationTest {
                 ))
         );
 
-        //WHEN
-        mockMvc.perform(post("/api/v1/orderService/order")
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(createRequest)))
-        //THEN
-                .andExpect(status().isConflict());
-    }
-
-    @Test
-    public void updateOrder_existingOrder_updatesOrder() throws Exception {
-        //GIVEN
-        String userId = orderEntity.getUserId();
+        String jsonResponse = utility.orderServiceClient.createOrder(createRequest)
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        OrderResponse createResponse = mapper.readValue(jsonResponse, OrderResponse.class);
+        String orderId = createResponse.getId();
         String updatedStatus = Status.OUT_FOR_DELIVERY.toString();
         OrderUpdateRequest updateRequest = new OrderUpdateRequest(
                 orderId,
                 userId,
-                orderEntity.getShippingAddress(),
-                orderEntity.getOrderTotal(),
+                createResponse.getShippingAddress(),
+                createResponse.getOrderTotal(),
                 updatedStatus,
                 Arrays.asList(
                         new OrderItem(
@@ -251,33 +254,27 @@ public class OrderServiceIntegrationTest {
 
         );
         //WHEN
-        mockMvc.perform(put("/api/v1/orderService/order")
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(updateRequest)))
+        utility.orderServiceClient.updateOrder(updateRequest)
         //THEN
                 .andExpect(status().isAccepted());
-        mockMvc.perform(get("/api/v1/orderService/order/{orderId}/user/{userId}", orderId, userId)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON))
-                //THEN
+        utility.orderServiceClient.getOrderByOrderId(orderId, userId)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(orderId))
-                .andExpect(jsonPath("$.status").value(updatedStatus))
-                .andExpect(jsonPath("$.orderItems.length()").value(2));
+                .andExpect(jsonPath("id").value(orderId))
+                .andExpect(jsonPath("status").value(updatedStatus))
+                .andExpect(jsonPath("orderItems.length()").value(2));
     }
 
     @Test
     public void updateOrder_notExistingOrder_doesNotUpdateOrder() throws Exception{
         //GIVEN
-        String userId = orderEntity.getUserId();
+        String userId = UUID.randomUUID().toString();
         String updatedStatus = "SHIPPING";
         String invalidOrderId = UUID.randomUUID().toString();
         OrderUpdateRequest updateRequest = new OrderUpdateRequest(
                 invalidOrderId,
                 userId,
-                orderEntity.getShippingAddress(),
-                orderEntity.getOrderTotal(),
+                mockNeat.addresses().valStr(),
+                mockNeat.doubles().val(),
                 updatedStatus,
                 Arrays.asList(
                         new OrderItem(
@@ -296,42 +293,53 @@ public class OrderServiceIntegrationTest {
 
         );
         //WHEN
-        mockMvc.perform(put("/api/v1/orderService/order")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(updateRequest)))
+        utility.orderServiceClient.updateOrder(updateRequest)
         //THEN
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
     }
 
     @Test
     public void deleteOrder_existingOrder_deletesOrder() throws Exception{
         //GIVEN
-        String userId = orderEntity.getUserId();
+        String userId = UUID.randomUUID().toString();
+        //GIVEN
+        OrderCreateRequest createRequest = new OrderCreateRequest(
+                userId,
+                UUID.randomUUID().toString(),
+                mockNeat.addresses().valStr(),
+                mockNeat.doubles().val(),
+                Status.PROCESSING.toString(),
+                Arrays.asList(new OrderItem(
+                        mockNeat.names().valStr(),
+                        mockNeat.urls().valStr(),
+                        mockNeat.ints().range(1,10).val(),
+                        mockNeat.doubles().val()
+                ))
+        );
+
+        String jsonResponse = utility.orderServiceClient.createOrder(createRequest)
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        OrderResponse createResponse = mapper.readValue(jsonResponse, OrderResponse.class);
+        String orderId = createResponse.getId();
         //WHEN
-        mockMvc.perform(delete("/api/v1/orderService/order/{orderId}/user/{userId}",orderId, userId)
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON))
+        utility.orderServiceClient.deleteOrder(orderId, userId)
         //THEN
                 .andExpect(status().isAccepted());
-        mockMvc.perform(get("/api/v1/orderService/order/all/user/{userId}",userId)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON))
+        utility.orderServiceClient.getAllOrdersForUserId(userId)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.orderList.length()").value(0));
+                .andExpect(jsonPath("orderList.length()").value(0));
 
     }
     @Test
     public void deleteOrder_notExistingOrder_doesNotDeleteOrder() throws Exception{
         //GIVEN
-        String userId = orderEntity.getUserId();
+        String userId = UUID.randomUUID().toString();
         String invalidOrderId = UUID.randomUUID().toString();
         //WHEN
-        mockMvc.perform(delete("/api/v1/orderService/order/{orderId}/user/{userId}",invalidOrderId, userId)
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON))
+        utility.orderServiceClient.deleteOrder(invalidOrderId, userId)
         //THEN
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
     }
 
 }

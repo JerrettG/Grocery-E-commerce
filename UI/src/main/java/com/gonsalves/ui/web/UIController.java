@@ -40,7 +40,7 @@ public class UIController {
     @RequestMapping({"/", "/home"})
     public String home(Model model,
                        @RequestParam(value = "category", defaultValue = "")String category,
-                       @RequestParam(value = "searchTerm", defaultValue = "")String searchTerm) {
+                       @RequestParam(value = "searchTerm", defaultValue = "")String searchTerm, Authentication authentication) {
         ProductList response;
         if (category.isBlank() && searchTerm.isBlank())
             response =  webClient.get()
@@ -59,12 +59,9 @@ public class UIController {
             model.addAttribute("products", response.getProductList());
         else
             model.addAttribute("products", new ArrayList<Product>());
+        if (authentication != null)
+            model.addAttribute("isAuthenticated", authentication.isAuthenticated());
         return "index";
-    }
-
-    @RequestMapping(value = "/search", method = RequestMethod.POST)
-    public String search(@RequestParam("searchTerm")String searchTerm, Model model) {
-        return home(model, "", searchTerm);
     }
 
     @RequestMapping("/product/{productName}")
@@ -95,8 +92,8 @@ public class UIController {
     public String addToCart(@ModelAttribute("cartItem") CartItem cartItem, @RequestParam(name = "quantity") int quantity,
                           Authentication authentication) {
         String userId = authentication.getName();
-        cartItem.setQuantity(quantity);
         cartItem.setUserId(userId);
+        cartItem.setQuantity(quantity);
         ResponseEntity<String> response = webClient.post()
                 .uri(String.format("/api/v1/cartService/cart/%s/cartItem", userId))
                 .body(Mono.just(cartItem), CartItem.class).retrieve().toEntity(String.class).block();

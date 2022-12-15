@@ -25,7 +25,6 @@
                                         <i class="fa fa-caret-down"></i>
                                     </button>
                                 </div>
-                                <p class="navbar-link-header">Categories</p>
                                 <div class="dropdown-content">
                                     <th:block th:fragment="category-links">
                                         <a th:href="@{|/home?category=BAKED_GOODS|}">Baked goods</a>
@@ -61,7 +60,6 @@
                                     </button>
                                 </div>
                                 <div class="account-dropdown-content">
-                                    <p class="navbar-link-header">Account</p>
                                     <a class="dropdown-links" th:href="@{/profile}">Profile</a>
                                     <a class="dropdown-links" sec:authorize="!isAuthenticated()" th:href="@{/oauth2/authorization/auth0}">Login</a>
                                     <a class="dropdown-links" sec:authorize="isAuthenticated()" th:href="@{/logout}">Logout</a>
@@ -77,7 +75,7 @@
         </nav>
         <div id="mySidenav" class="sidenav">
             <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-            <p class="navbar-link-header">Categories</p>
+            <p class="sidenav-header">Categories</p>
             <th:block th:insert="fragments :: category-links">
 
             </th:block>
@@ -99,8 +97,20 @@
     <a th:href="@{|/product/${product.getName()}|}" th:fragment="product-overview">
         <li>
             <img th:src="${product.getImageUrl()}" th:alt="${product.getName()}">
-            <h3 th:text="${#numbers.formatCurrency(product.getPrice())}" ></h3>
-            <p th:text="${product.getName()}"></p>
+            <h3 th:text="${product.getName()}"></h3>
+            <p th:text="${#numbers.formatCurrency(product.getPrice())}"></p>
+        </li>
+    </a>
+
+    <a href="/product/${product.name}">
+        <li>
+            <img src="${product.imageUrl}" alt="${product.name}">
+            <div class="product-name">
+                <h3>${product.name}</h3>
+            </div>
+            <div class="product-price-unit-description">
+                <span style="font-family: Arial"><strong>${price}</strong></span><span> / </span><span style="font-family: Arial">${product.unitMeasurement}</span>
+            </div>
         </li>
     </a>
 <!---------------------------------- SHOPPING CART ITEM ------------------------->

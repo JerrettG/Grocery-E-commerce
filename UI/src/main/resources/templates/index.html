@@ -12,18 +12,19 @@
     <nav th:replace="fragments :: navbar"></nav>
 
 
-    <section class="sale-banner">
-        <img th:src="@{images/sales_banner.png}">
-    </section>
+    <div class="landing-page-hero" th:style="'background: url(/images/grocery-hero-image.jpeg) no-repeat center center;'">
+<!--        <img th:src="@{images/grocery-hero-image.jpeg}">-->
+    </div>
     <section class="new-products">
-
         <h1>All Products</h1>
-
-        <ul class="product-catalog"></ul>
+        <div class="product-catalog-container">
+            <ul class="product-catalog"></ul>
+        </div>
     </section>
 </body>
 <script th:inline="javascript">
     const products = /*[[${products}]]*/ '';
+    const isAuthenticated = /*[[${isAuthenticated}]]*/ false;
 </script>
 <script type=text/javascript th:src="@{/js/index.js}"></script>
 </html>

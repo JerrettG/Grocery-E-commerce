@@ -18,7 +18,6 @@ public class CartItem {
 
     private String userId;
 
-
     private int quantity;
 
     private String productId;

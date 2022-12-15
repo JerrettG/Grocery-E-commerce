@@ -19,18 +19,51 @@ function refreshSearch() {
            let price = formatter.format(product.price);
             results.push(
                 `
-                <a href="/product/${product.name}">
+                <div class="product-catalog-product-card" id="${product.productId}">
                     <li>
-                        <img src="${product.imageUrl}" alt="${product.name}">
-                        <h3>${price}</h3>
-                        <p>${product.name}</p>
+                        <a href="/product/${product.name}">
+                            <img src="${product.imageUrl}" alt="${product.name}" class="product-catalog-product-image">
+                            <div class="product-name-container">
+                                <h3 class="product-name">${product.name}</h3>
+                            </div>
+                            <div class="product-price-unit-description">
+                                <span style="font-family: Arial"><strong>${price}</strong></span><span> / </span><span style="font-family: Arial"><strong>${product.unitMeasurement}</strong></span>
+                            </div>
+                        </a>
+                        <button class="product-catalog-add-to-cart-button" type="button" onclick="addToCart('${product.productId}', '${product.name}', '${product.price}', '${product.imageUrl}')">Add to cart</button>
                     </li>
-                </a>
+                </div>
             `);
        }
     }
 
     document.querySelector(".product-catalog").innerHTML = results.join('\n');
+}
+
+async function addToCart(productId, name, price, productImageUrl) {
+    if (!isAuthenticated) {
+        window.location.href = "http://localhost:8084/oauth2/authorization/auth0";
+    }
+    else {
+        let quantity = 1;
+
+        let cartItem = {
+            productId: productId,
+            productImageUrl: productImageUrl,
+            productName: name,
+            productPrice: price,
+            quantity: quantity
+        }
+
+        const response = await fetch(`/services/product/${name}/addToCart`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(cartItem)
+        }).catch(function () {
+            console.log("error");
+        });
+    }
+
 }
 
 

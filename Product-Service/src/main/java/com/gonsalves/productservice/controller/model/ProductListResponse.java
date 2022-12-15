@@ -14,7 +14,7 @@ public class ProductListResponse {
     public ProductListResponse() {
         productList = new ArrayList<>();
     }
-    public ProductListResponse(List<Product> productEntityList) {
-        this.productList = productEntityList;
+    public ProductListResponse(List<Product> productList) {
+        this.productList = productList;
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class OrderService {
@@ -35,7 +36,7 @@ public class OrderService {
 
         List<Order> ordersFromDatabase = new ArrayList<>();
         orderRepository.getAllOrdersByUserId(userId)
-                .forEach(entity -> ordersFromDatabase.add(createOrderFromEntity(entity)));
+                .forEach(entity -> ordersFromDatabase.add(convertToEntity(entity)));
         cache.add(userId, ordersFromDatabase);
 
         return ordersFromDatabase;
@@ -46,25 +47,26 @@ public class OrderService {
         OrderEntity entity = orderRepository.getOrderByOrderId(userId, orderId);
         if (entity == null)
             throw new OrderNotFoundException("Order with order id could not be found.");
-        return createOrderFromEntity(entity);
+        return convertToEntity(entity);
     }
-    public void createOrder(Order order) {
+    public Order createOrder(Order order) {
         List<OrderEntity> results = orderRepository.getOrderByPaymentIntentId(order.getUserId(), order.getPaymentIntentId());
         if (results.size() > 0)
             throw new OrderAlreadyExistsException("Cannot create order. Order already created for this transaction.");
-        orderRepository.createOrder(createEntityFromOrder(order));
+        order.setId(UUID.randomUUID().toString());
+        orderRepository.createOrder(convertToOrder(order));
         cache.evict(order.getUserId());
+        return order;
     }
 
     public void updateOrder(Order order) {
         getOrderByOrderId(order.getUserId(), order.getId());
-
-        orderRepository.updateOrder(createEntityFromOrder(order));
+        orderRepository.updateOrder(convertToOrder(order));
         cache.evict(order.getUserId());
     }
 
     public void cancelOrder(Order order) {
-        OrderEntity entity = createEntityFromOrder(order);
+        OrderEntity entity = convertToOrder(order);
         entity.setStatus(Status.CANCELLED);
         orderRepository.updateOrder(entity);
         cache.evict(order.getUserId());
@@ -78,9 +80,9 @@ public class OrderService {
                 .build());
         cache.evict(order.getUserId());
     }
-    private Order createOrderFromEntity(OrderEntity entity) {
+    private Order convertToEntity(OrderEntity entity) {
         List<OrderItem> orderItems = new ArrayList<>();
-        entity.getOrderItemEntities().forEach(itemEntity -> orderItems.add(createOrderItemFromEntity(itemEntity)));
+        entity.getOrderItemEntities().forEach(itemEntity -> orderItems.add(convertToEntity(itemEntity)));
 
         return Order.builder()
                 .id(entity.getId())
@@ -95,7 +97,7 @@ public class OrderService {
 
 
     }
-    private OrderItem createOrderItemFromEntity(OrderItemEntity entity) {
+    private OrderItem convertToEntity(OrderItemEntity entity) {
         return new OrderItem(
                 entity.getItemName(),
                 entity.getImageUrl(),
@@ -104,9 +106,9 @@ public class OrderService {
         );
 
     }
-    private OrderEntity createEntityFromOrder(Order order) {
+    private OrderEntity convertToOrder(Order order) {
         List<OrderItemEntity> orderItemEntities = new ArrayList<>();
-        order.getOrderItems().forEach(orderItem -> orderItemEntities.add(createEntityFromOrderItem(orderItem)));
+        order.getOrderItems().forEach(orderItem -> orderItemEntities.add(convertToOrderItem(orderItem)));
 
         return OrderEntity.builder()
                 .id(order.getId())
@@ -117,9 +119,8 @@ public class OrderService {
                 .status(Status.valueOf(order.getStatus()))
                 .orderItemEntities(orderItemEntities)
                 .build();
-
     }
-    private OrderItemEntity createEntityFromOrderItem(OrderItem orderItem) {
+    private OrderItemEntity convertToOrderItem(OrderItem orderItem) {
         return new OrderItemEntity(
                 orderItem.getItemName(),
                 orderItem.getImageUrl(),

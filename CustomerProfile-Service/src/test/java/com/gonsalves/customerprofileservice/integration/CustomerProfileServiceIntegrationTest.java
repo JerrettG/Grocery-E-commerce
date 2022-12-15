@@ -38,20 +38,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class CustomerProfileServiceIntegrationTest {
 
     @Autowired
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
+    private Utility utility;
     @Autowired
-    CustomerProfileRepository customerProfileRepository;
-    @Autowired
-    AmazonDynamoDB amazonDynamoDB;
+    private AmazonDynamoDB amazonDynamoDB;
 
     private final MockNeat mockNeat = MockNeat.threadLocal();
 
-    private final ObjectMapper mapper = new ObjectMapper();
-    private CustomerProfileEntity customerProfileEntity;
 
 
     @BeforeEach
     protected void setup() {
+        utility = new Utility(mockMvc);
         List<AttributeDefinition> attributeDefinitions= new ArrayList<AttributeDefinition>();
         attributeDefinitions.add(new AttributeDefinition().withAttributeName("user_id").withAttributeType("S"));
 
@@ -71,45 +69,37 @@ public class CustomerProfileServiceIntegrationTest {
             System.out.println(e.getMessage());
         }
 
-
-        customerProfileEntity = CustomerProfileEntity.builder()
-                .userId(UUID.randomUUID().toString())
-                .email(mockNeat.emails().valStr())
-                .firstName(mockNeat.names().first().valStr())
-                .lastName(mockNeat.names().last().valStr())
-                .shippingAddress(mockNeat.addresses().valStr())
-                .status(Status.ACTIVE)
-                .build();
-        customerProfileRepository.createCustomerProfile(customerProfileEntity);
-
-    }
-
-    @AfterEach
-    public void cleanUp() {
-        DeleteTableRequest request = new DeleteTableRequest();
-        request.setTableName("Ecommerce-CustomerProfileService-Profiles");
-
-        amazonDynamoDB.deleteTable(request);
     }
 
     @Test
     public void getCustomerProfileByUserId_profileExists_returnsCorrectProfile() throws Exception {
         //GIVEN
-        String userId = customerProfileEntity.getUserId();
-        String expectedFirstName = customerProfileEntity.getFirstName();
-        String expectedLastName = customerProfileEntity.getLastName();
-        String expectedEmail = customerProfileEntity.getEmail();
-        String expectedShippingAddress = customerProfileEntity.getShippingAddress();
+        String userId = UUID.randomUUID().toString();
+        String email = mockNeat.emails().valStr();
+        String firstName = mockNeat.names().first().valStr();
+        String lastName = mockNeat.names().last().valStr();
+        String shippingAddress = mockNeat.addresses().valStr();
+
+        CustomerProfileCreateRequest createRequest = new CustomerProfileCreateRequest(
+                userId,
+                email,
+                firstName,
+                lastName,
+                shippingAddress
+        );
+
+        utility.customProfileServiceClient.createCustomerProfile(createRequest);
+
         //WHEN
-        mockMvc.perform(get("/api/v1/customerProfileService/user/{userId}", userId)
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON))
+        utility.customProfileServiceClient.getCustomerProfileByUserId(userId)
         //THEN
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.firstName").value(expectedFirstName))
-                .andExpect(jsonPath("$.lastName").value(expectedLastName))
-                .andExpect(jsonPath("$.email").value(expectedEmail))
-                .andExpect(jsonPath("$.shippingAddress").value(expectedShippingAddress));
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.firstName").value(firstName),
+                        jsonPath("$.lastName").value(lastName),
+                        jsonPath("$.email").value(email),
+                        jsonPath("$.shippingAddress").value(shippingAddress)
+                );
     }
     @Test
     public void getCustomerProfileByUserId_profileDoesNotExist_doesNotReturnProfile() throws Exception{
@@ -140,43 +130,42 @@ public class CustomerProfileServiceIntegrationTest {
                 lastName,
                 shippingAddress
         );
+
         //WHEN
-        mockMvc.perform(post("/api/v1/customerProfileService/user")
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(createRequest)))
+        utility.customProfileServiceClient.createCustomerProfile(createRequest)
         //THEN
                 .andExpect(status().isCreated());
         mockMvc.perform(get("/api/v1/customerProfileService/user/{userId}", userId)
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.firstName").value(firstName))
-                .andExpect(jsonPath("$.lastName").value(lastName))
-                .andExpect(jsonPath("$.email").value(email))
-                .andExpect(jsonPath("$.shippingAddress").value(shippingAddress));
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.firstName").value(firstName),
+                        jsonPath("$.lastName").value(lastName),
+                        jsonPath("$.email").value(email),
+                        jsonPath("$.shippingAddress").value(shippingAddress)
+                );
     }
     @Test
     public void createCustomerProfile_profileExists_doesNotCreateProfile() throws Exception {
         //GIVEN
-        String existingUserId = customerProfileEntity.getUserId();
-        String existingEmail = customerProfileEntity.getEmail();
-        String existingFirstName = customerProfileEntity.getFirstName();
-        String existingLastName = customerProfileEntity.getLastName();
-        String existingShippingAddress = customerProfileEntity.getShippingAddress();
+        String userId = UUID.randomUUID().toString();
+        String email = mockNeat.emails().valStr();
+        String firstName = mockNeat.names().first().valStr();
+        String lastName = mockNeat.names().last().valStr();
+        String shippingAddress = mockNeat.addresses().valStr();
 
         CustomerProfileCreateRequest createRequest = new CustomerProfileCreateRequest(
-                existingUserId,
-                existingEmail,
-                existingFirstName,
-                existingLastName,
-                existingShippingAddress
+                userId,
+                email,
+                firstName,
+                lastName,
+                shippingAddress
         );
+
+        utility.customProfileServiceClient.createCustomerProfile(createRequest);
         //WHEN
-        mockMvc.perform(post("/api/v1/customerProfileService/user")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper.writeValueAsString(createRequest)))
+        utility.customProfileServiceClient.createCustomerProfile(createRequest)
                 //THEN
                 .andExpect(status().isConflict());
     }
@@ -184,34 +173,46 @@ public class CustomerProfileServiceIntegrationTest {
     @Test
     public void updateCustomerProfile_profileExists_updatesProfile() throws Exception{
         //GIVEN
-        String existingUserId = customerProfileEntity.getUserId();
+        String userId = UUID.randomUUID().toString();
+        String email = mockNeat.emails().valStr();
+        String firstName = mockNeat.names().first().valStr();
+        String lastName = mockNeat.names().last().valStr();
+        String shippingAddress = mockNeat.addresses().valStr();
+
+        CustomerProfileCreateRequest createRequest = new CustomerProfileCreateRequest(
+                userId,
+                email,
+                firstName,
+                lastName,
+                shippingAddress
+        );
+
+        utility.customProfileServiceClient.createCustomerProfile(createRequest);
+
         String updatedEmail = mockNeat.emails().valStr();
-        String existingFirstName = customerProfileEntity.getFirstName();
-        String existingLastName = customerProfileEntity.getLastName();
         String updatedShippingAddress = mockNeat.addresses().valStr();
 
         CustomerProfileUpdateRequest updateRequest = new CustomerProfileUpdateRequest(
-                existingUserId,
+                userId,
                 updatedEmail,
-                existingFirstName,
-                existingLastName,
+                firstName,
+                lastName,
                 updatedShippingAddress
         );
         //WHEN
-        mockMvc.perform(put("/api/v1/customerProfileService/user")
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(updateRequest)))
+        utility.customProfileServiceClient.updateCustomerProfile(updateRequest)
         //THEN
                 .andExpect(status().isAccepted());
-        mockMvc.perform(get("/api/v1/customerProfileService/user/{userId}", existingUserId)
+        mockMvc.perform(get("/api/v1/customerProfileService/user/{userId}", userId)
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value(updatedEmail))
-                .andExpect(jsonPath("$.firstName").value(existingFirstName))
-                .andExpect(jsonPath("$.lastName").value(existingLastName))
-                .andExpect(jsonPath("$.shippingAddress").value(updatedShippingAddress));
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.email").value(updatedEmail),
+                        jsonPath("$.firstName").value(firstName),
+                        jsonPath("$.lastName").value(lastName),
+                        jsonPath("$.shippingAddress").value(updatedShippingAddress)
+                );
     }
 
     @Test
@@ -219,8 +220,8 @@ public class CustomerProfileServiceIntegrationTest {
         //GIVEN
         String invalidUserId = UUID.randomUUID().toString();
         String updatedEmail = mockNeat.emails().valStr();
-        String firstName = customerProfileEntity.getFirstName();
-        String lastName = customerProfileEntity.getLastName();
+        String firstName = mockNeat.names().first().valStr();
+        String lastName = mockNeat.names().last().valStr();
         String updatedShippingAddress = mockNeat.addresses().valStr();
 
         CustomerProfileUpdateRequest updateRequest = new CustomerProfileUpdateRequest(
@@ -231,43 +232,65 @@ public class CustomerProfileServiceIntegrationTest {
                 updatedShippingAddress
         );
         //WHEN
-        mockMvc.perform(put("/api/v1/customerProfileService/user")
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(updateRequest)))
+        utility.customProfileServiceClient.updateCustomerProfile(updateRequest)
         //THEN
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
     }
 
     @Test
     public void deleteCustomerProfile_existingProfileEraseDataFalse_profileStatusChangedToInactive() throws Exception {
         //GIVEN
-        String existingUserId = customerProfileEntity.getUserId();
+        String userId = UUID.randomUUID().toString();
+        String email = mockNeat.emails().valStr();
+        String firstName = mockNeat.names().first().valStr();
+        String lastName = mockNeat.names().last().valStr();
+        String shippingAddress = mockNeat.addresses().valStr();
+
+        CustomerProfileCreateRequest createRequest = new CustomerProfileCreateRequest(
+                userId,
+                email,
+                firstName,
+                lastName,
+                shippingAddress
+        );
+
+        utility.customProfileServiceClient.createCustomerProfile(createRequest);
         //WHEN
-        mockMvc.perform(delete("/api/v1/customerProfileService/user/{userId}",existingUserId)
-                .param("eraseData", "false")
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON))
+        utility.customProfileServiceClient.deleteCustomerProfile(false, userId)
         //THEN
                 .andExpect(status().isAccepted());
-        mockMvc.perform(get("/api/v1/customerProfileService/user/{userId}", existingUserId)
+        mockMvc.perform(get("/api/v1/customerProfileService/user/{userId}", userId)
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("INACTIVE"));
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.status").value("INACTIVE")
+                );
     }
     @Test
     public void deleteCustomerProfile_existingProfileEraseDataTrue_profileDeleted() throws Exception {
         //GIVEN
-        String existingUserId = customerProfileEntity.getUserId();
+        String userId = UUID.randomUUID().toString();
+        String email = mockNeat.emails().valStr();
+        String firstName = mockNeat.names().first().valStr();
+        String lastName = mockNeat.names().last().valStr();
+        String shippingAddress = mockNeat.addresses().valStr();
+
+        CustomerProfileCreateRequest createRequest = new CustomerProfileCreateRequest(
+                userId,
+                email,
+                firstName,
+                lastName,
+                shippingAddress
+        );
+        
+        utility.customProfileServiceClient.createCustomerProfile(createRequest);
+
         //WHEN
-        mockMvc.perform(delete("/api/v1/customerProfileService/user/{userId}",existingUserId)
-                        .param("eraseData", "true")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON))
+        utility.customProfileServiceClient.deleteCustomerProfile(true, userId)
         //THEN
                 .andExpect(status().isAccepted());
-        mockMvc.perform(get("/api/v1/customerProfileService/user/{userId}", existingUserId)
+        mockMvc.perform(get("/api/v1/customerProfileService/user/{userId}", userId)
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
@@ -278,23 +301,17 @@ public class CustomerProfileServiceIntegrationTest {
         //GIVEN
         String invalidUserId = UUID.randomUUID().toString();
         //WHEN
-        mockMvc.perform(delete("/api/v1/customerProfileService/user/{userId}",invalidUserId)
-                        .param("eraseData", "false")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON))
+        utility.customProfileServiceClient.deleteCustomerProfile(false, invalidUserId)
         //THEN
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
     }
     @Test
     public void deleteCustomerProfile_notExistingProfileEraseDataTrue_noChange() throws Exception {
         //GIVEN
         String invalidUserId = UUID.randomUUID().toString();
         //WHEN
-        mockMvc.perform(delete("/api/v1/customerProfileService/user/{userId}",invalidUserId)
-                        .param("eraseData", "true")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON))
+        utility.customProfileServiceClient.deleteCustomerProfile(true, invalidUserId)
         //THEN
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
     }
 }

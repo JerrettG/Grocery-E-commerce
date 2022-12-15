@@ -7,12 +7,15 @@ function checkout(cart) {
 
 
 async function removeFromCart(id, userId) {
-    const json = `{"id": "${id}", "userId": "${userId}"}`
+    const request = {
+        id: id,
+        userId: userId
+    }
 
     const response = await fetch("/services/shoppingCart", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: json
+        body: JSON.stringify(request)
     }).catch(function (){
         console.log("error");
     })
@@ -29,11 +32,9 @@ async function removeFromCart(id, userId) {
         const updatedCartItems = [];
 
         for (let item of cart.cartItems) {
-            console.log("id to be removed is: " + id);
-            console.log("id of current Item is: " + item.id);
             if (item.id !== id) {
                 let price = formatter.format(item.productPrice);
-                updatedSubtotal += item.productPrice;
+                updatedSubtotal += item.productPrice*item.quantity;
                 updatedCartItems.push(item);
                 updatedCartHtml +=
                     `
@@ -68,12 +69,13 @@ async function removeFromCart(id, userId) {
                 <li><h1>Your shopping cart is empty</h1></li>
                 `;
             document.getElementById("checkout-button").style.display = "none";
-            document.getElementById("shopping-cart-updatedSubtotal").innerHTML = "$0.00";
+            document.getElementById("shopping-cart-subtotal").innerHTML = "$0.00";
         }
         else {
         updatedSubtotal = formatter.format(updatedSubtotal);
-        document.getElementById("shopping-cart-updatedSubtotal").innerHTML = `${updatedSubtotal}`
+        document.getElementById("shopping-cart-subtotal").innerHTML = `${updatedSubtotal}`
         document.querySelector(".shopping-cart-item-container").innerHTML = updatedCartHtml;
         }
     }
 }
+
