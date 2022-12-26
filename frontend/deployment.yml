@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-interface-app
+  labels:
+    app: user-interface-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-interface-app
+  template:
+    metadata:
+      labels:
+        app: user-interface-app
+    spec:
+      containers:
+        - name: user-interface-app
+          image: docker.io/jerrettg/grocery-e-commerce-user-interface:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8084
+          env:
+            - name: GATEWAY_URL
+              value: api-gateway-svc.default.svc.cluster.local
+            - name: ZIPKIN_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: gateway-cm
+                  key: zipkin_service_url
+            - name: STRIPE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: stripe-api-key
+            - name: STRIPE_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: stripe-public-key
+            - name: STRIPE_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: stripe-webhook-secret
+            - name: AUTH_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: auth-client-id
+            - name: AUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: auth-client-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-interface-svc
+spec:
+  selector:
+    app: user-interface-app
+  type: ClusterIP
+  ports:
+    - port: 8084
+      targetPort: 8084
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-interface-lb
+spec:
+  selector:
+    app: user-interface-app
+  type: LoadBalancer
+  ports:
+    - name: frontend
+      port: 8084
+      targetPort: 8084
+      protocol: TCP
+    - name: request
+      port: 80
+      targetPort: 8084
+      protocol: TCP

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${product.getName()}"></title>
+    <link th:href="@{/css/style.css}" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+    <th:body th:replace="fragments :: navbar"></th:body>
+
+    <section>
+        <div class="product-container">
+            <div class="product-image-container">
+                <img th:src="${product.getImageUrl()}" th:alt="${product.getName()}">
+            </div>
+            <div class="product-info">
+                <h1 th:text="${product.getName()}"></h1>
+                <bold><p class="product-info-header">Details</p></bold>
+                <p th:text="${product.getDescription()}">Delicious red apple full of nutrients to keep yourself healthy and promote long term health.</p>
+            </div>
+            <div class="add-to-cart">
+                <h3 th:text="${#numbers.formatCurrency(product.getPrice())}"></h3>
+                <p th:text="${product.getUnitMeasurement()}"></p>
+                <div class="quantity-selector">
+                    <span class="decrement-quantity" onclick="decreaseQuantity(this)">-</span>
+                    <input type="number" name="quantity" form="add-to-cart" value="1">
+                    <span class="increment-quantity" onclick="increaseQuantity(this)">+</span>
+                </div>
+                <form th:action="@{|/services/product/${product.getName()}/addToCart|}" method="POST" th:object="${cartItem}" id="add-to-cart">
+                    <input type="hidden" th:value="${product.getProductId()}" name="productId">
+                    <input type="hidden" th:value="${product.getName()}" name="productName">
+                    <input type="hidden" th:value="${product.getPrice()}" name="productPrice">
+                    <input type="hidden" th:value="${product.getImageUrl()}" name="productImageUrl">
+                </form>
+                <button class="add_to_cart_button" type="submit" form="add-to-cart">Add to cart</button>
+            </div>
+        </div>
+    </section>
+    <section class="recommended-products">
+        <h1>Placeholder for recommended products</h1>
+    </section>
+</body>
+<script>
+    function increaseQuantity(x) {
+        var input = x.previousElementSibling;
+        var value = parseInt(input.value, 10);
+        value = isNaN(value) ? 0 : value;
+        value++;
+        input.value = value;
+    }
+
+    function decreaseQuantity(x) {
+        var input = x.nextElementSibling;
+        var value = parseInt(input.value, 10);
+        if (value > 1) {
+        value = isNaN(value) ? 0 : value;
+        value--;
+        input.value = value;
+        }
+    }
+</script>
+</html>
