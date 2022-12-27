@@ -82,6 +82,7 @@ public class UIController {
                             .uri(String.format("/api/v1/cartService/cart/%s", userId))
                                     .retrieve().bodyToMono(Cart.class).block();
             model.addAttribute("cart", cart);
+            model.addAttribute("userId", userId);
         } catch (HttpClientErrorException e) {
             model.addAttribute("error", true);
         }

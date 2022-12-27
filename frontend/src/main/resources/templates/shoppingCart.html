@@ -32,8 +32,8 @@
 
 </body>
 
-<!--<script th:inline="javascript">-->
-<!--    const cart = /*[[${cart}]]*/ '';-->
-<!--</script>-->
-<script type="module" th:src="@{/pages/shoppingCart.js}" defer></script>
+<script th:inline="javascript">
+    const userId = /*[[${userId}]]*/ '';
+</script>
+<script type="module" th:src="@{js/app.js}" defer></script>
 </html>

@@ -1,5 +1,4 @@
-const BaseClass = require("./baseClass.js");
-
+import BaseClass from "../../js/util/baseClass.js";
 /**
  * Stores all of the data across the state. When the state changes in any way, execute all of the listeners registered
  * with the DataStore. This way pages can listen to changes for specific data and refresh the page accordingly.

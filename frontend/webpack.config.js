@@ -3,18 +3,20 @@ const TerserPlugin = require('terser-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const WarningsToErrorsPlugin = require('warnings-to-errors-webpack-plugin');
+const {auto} = require("@popperjs/core");
 
 
 module.exports = (env, argv) => ({
   entry: [
       './src/main/resources/js/app.js',
-    // './src/main/resources/static/api/cartServiceClient.js',
-    // './src/main/resources/static/util/baseClass.js',
-    // './src/main/resources/static/util/DataStore.js'
+    './src/main/resources/js/pages/shoppingCart.js',
+    './src/main/resources/js/util/baseClass.js',
+    './src/main/resources/js/util/DataStore.js',
+      './src/main/resources/js/api/cartServiceClient.js'
   ],
   output: {
     path: path.resolve(__dirname, './target/classes/static'),
-    filename: 'js/bundle.js'
+    filename: 'js/app.js'
   },
   devtool: argv.mode === 'production' ? false : 'eval-source-map',
   optimization: {
@@ -34,11 +36,17 @@ module.exports = (env, argv) => ({
     rules: [
       {
         test: /\.js$/,
-        include: path.resolve(__dirname, './src/main/resources/js'),
+        include: [
+            path.resolve(__dirname, './src/main/resources/js'),
+            path.resolve(__dirname, './src/main/resources/js/util'),
+            path.resolve(__dirname, './src/main/resources/js/pages'),
+            path.resolve(__dirname, './src/main/resources/js/api'),
+        ],
         use: {
           loader: 'babel-loader',
           options: {
             presets: ['@babel/preset-env'],
+            plugins: ["@babel/plugin-transform-modules-commonjs"]
           },
         },
       },
@@ -75,8 +83,7 @@ module.exports = (env, argv) => ({
   },
   resolve: {
     modules: [
-      path.resolve(__dirname, './src/main/resources'),
-      'node_modules'
+      'node_modules',
     ],
   },
   devServer: {
@@ -105,3 +112,4 @@ module.exports = (env, argv) => ({
     ],
   }
 });
+

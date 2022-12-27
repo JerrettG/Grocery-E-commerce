@@ -5,32 +5,36 @@
     "devserver": "webpack serve --mode development",
     "build": "webpack --mode production"
   },
-  "type": "module",
   "dependencies": {
     "@popperjs/core": "^2.11.6",
-    "bootstrap": "^5.2.2"
+    "@babel/core": "^7.20.2",
+    "@babel/preset-env": "^7.20.2",
+    "babel-loader": "^9.1.0",
+    "bootstrap": "^5.2.2",
+    "terser-webpack-plugin": "^5.3.6"
   },
+  "type": "commonjs",
   "devDependencies": {
     "@babel/core": "^7.20.2",
     "@babel/preset-env": "^7.20.2",
     "autoprefixer": "10.4.5",
+    "axios": "^0.21.4",
     "babel-loader": "^9.1.0",
+    "clean-webpack-plugin": "^4.0.0",
     "css-loader": "^6.7.2",
     "css-minimizer-webpack-plugin": "^4.2.2",
+    "dotenv-webpack": "^8.0.1",
+    "js-joda": "^1.11.0",
     "mini-css-extract-plugin": "^2.7.0",
     "postcss-loader": "^7.0.1",
     "postcss-preset-env": "^7.8.3",
     "sass": "^1.56.1",
     "sass-loader": "^13.2.0",
     "style-loader": "^3.3.1",
+    "toastify-js": "^1.11.2",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
     "webpack": "^5.75.0",
     "webpack-cli": "^5.0.0",
-    "webpack-dev-server": "^4.11.1",
-    "axios": "^0.21.4",
-    "clean-webpack-plugin": "^4.0.0",
-    "dotenv-webpack": "^8.0.1",
-    "js-joda": "^1.11.0",
-    "toastify-js": "^1.11.2"
+    "webpack-dev-server": "^4.11.1"
   }
 }

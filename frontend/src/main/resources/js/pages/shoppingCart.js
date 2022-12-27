@@ -1,6 +1,6 @@
-import BaseClass from "../util/baseClass.js";
-import CartServiceClient from "../api/cartServiceClient.js";
-import DataStore from "../util/DataStore.js";
+import BaseClass from "../../js/util/baseClass.js";
+import CartServiceClient from "../../js/api/cartServiceClient.js";
+import DataStore from "../../js/util/DataStore.js";
 
 /**
  * Logic needed for the shopping cart page
@@ -10,21 +10,20 @@ class ShoppingCartPage extends BaseClass {
     constructor() {
         super();
         this.bindClassMethods([
-            'renderShoppingCart',
-            'onGetShoppingCartByUserId',
-            'onRemoveItemFromCart', 'onUpdateItemQuantity'
-        ])
+            'renderShoppingCart', 'onGetShoppingCartByUserId',
+            'onRemoveItemFromCart'], this);
         this.dataStore = new DataStore();
     }
+
     async mount() {
         const removeButtons = document.querySelectorAll('.remove-item-button');
         for (let removeItemButton of removeButtons) {
             removeItemButton.addEventListener('click', this.onRemoveItemFromCart);
         }
         this.client = new CartServiceClient();
-        if (document.title === 'Grocery E-commerce Shopping Cart') {
         this.dataStore.addChangeListener(this.renderShoppingCart);
-        }
+        this.onGetShoppingCartByUserId();
+
     }
 
     async renderShoppingCart() {

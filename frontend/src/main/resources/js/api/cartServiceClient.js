@@ -1,5 +1,6 @@
-const BaseClass = require("../util/baseClass.js");
-const axios = require("axios");
+import BaseClass from "../../js/util/baseClass.js";
+
+import axios from "axios";
 
 /**
  * Client to call the cartService
