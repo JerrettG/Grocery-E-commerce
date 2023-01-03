@@ -1,5 +1,6 @@
 package com.gonsalves.orderservice.controller.model;
 
+import com.gonsalves.orderservice.service.model.AddressInfo;
 import com.gonsalves.orderservice.service.model.OrderItem;
 
 import java.util.List;
@@ -8,10 +9,12 @@ public interface OrderRequest {
 
     String getUserId();
     void setUserId(String userId);
-    String getShippingAddress();
-    void setShippingAddress(String shippingAddress);
-    double getOrderTotal();
-    void setOrderTotal(double orderTotal);
+    AddressInfo getShippingInfo();
+    void setShippingInfo(AddressInfo shippingInfo);
+    AddressInfo getBillingInfo();
+    void setBillingInfo(AddressInfo billingInfo);
+    double getTotal();
+    void setTotal(double total);
     String getStatus();
     void setStatus(String status);
     List<OrderItem> getOrderItems();

@@ -11,6 +11,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
 }
 
 .checkout-form {
@@ -41,7 +42,7 @@ body {
 
 /* Buttons and links */
 .checkout-buttons {
-    background: #5469d4;
+    background: var(--secondary-color);
     font-family: Arial, sans-serif;
     color: #ffffff;
     border-radius: 4px;
@@ -90,7 +91,7 @@ body {
 .spinner:before {
     width: 10.4px;
     height: 20.4px;
-    background: #5469d4;
+    background: var(--secondary-color);
     border-radius: 20.4px 0 0 20.4px;
     top: -0.2px;
     left: -0.2px;
@@ -102,7 +103,7 @@ body {
 .spinner:after {
     width: 10.4px;
     height: 10.2px;
-    background: #5469d4;
+    background: var(--secondary-color);
     border-radius: 0 10.2px 10.2px 0;
     top: -0.1px;
     left: 10.2px;

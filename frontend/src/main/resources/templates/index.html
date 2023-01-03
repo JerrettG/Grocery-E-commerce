@@ -7,24 +7,23 @@
     <title>Grocery E-commerce</title>
     <link th:href="@{/css/style.css}" rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body>
     <nav th:replace="fragments :: navbar"></nav>
 
 
-    <div class="landing-page-hero" th:style="'background: url(/images/grocery-hero-image.jpeg) no-repeat center center;'">
-<!--        <img th:src="@{images/grocery-hero-image.jpeg}">-->
-    </div>
-    <section class="new-products">
+    <div class="landing-page-hero"></div>
+    <section class="product-catalog-section">
         <h1>All Products</h1>
         <div class="product-catalog-container">
-            <ul class="product-catalog"></ul>
+            <ul id="product-catalog"></ul>
         </div>
     </section>
 </body>
 <script th:inline="javascript">
-    const products = /*[[${products}]]*/ '';
+    const userId = /*[[${userId}]]*/ '';
     const isAuthenticated = /*[[${isAuthenticated}]]*/ false;
 </script>
-<script type=text/javascript th:src="@{/pages/index.js}"></script>
+<script type="module" th:src="@{/js/index.bundle.js}" defer></script>
 </html>

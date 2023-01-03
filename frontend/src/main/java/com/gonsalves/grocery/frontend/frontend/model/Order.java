@@ -1,5 +1,7 @@
 package com.gonsalves.grocery.frontend.frontend.model;
 
+import com.google.gson.annotations.SerializedName;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,46 +12,29 @@ import java.util.List;
 @Builder
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class Order {
-
-
-    private String id;
+    @SerializedName("userId")
     private String userId;
+    @SerializedName("paymentIntentId")
     private String paymentIntentId;
-    private String shippingAddress;
-    private double orderTotal;
+    @SerializedName("shippingInfo")
+    private AddressInfo shippingInfo;
+    @SerializedName("billingInfo")
+    private AddressInfo billingInfo;
+    @SerializedName("subtotal")
+    private double subtotal;
+    @SerializedName("tax")
+    private double tax;
+    @SerializedName("shippingCost")
+    private double shippingCost;
+    @SerializedName("total")
+    private double total;
+    @SerializedName("status")
     private String status;
+    @SerializedName("orderItems")
     private List<OrderItem> orderItems;
-    private String createdDate;
 
-    public Order(String id, String userId, String paymentIntentId, String shippingAddress, double orderTotal, String status,
-                 List<OrderItem> orderItems, String createdDate) {
-        this.id = id;
-        this.userId = userId;
-        this.paymentIntentId = paymentIntentId;
-        this.shippingAddress = shippingAddress;
-        this.orderTotal = orderTotal;
-        this.status = status;
-        this.orderItems = orderItems;
-        this.createdDate = formatLocalDateTime(createdDate);
-    }
-    private String formatLocalDateTime(String localDateTime) {
-        if (localDateTime == null)
-            return null;
-        ZonedDateTime ldt = ZonedDateTime.parse(localDateTime);
-        return DateTimeFormatter.ofPattern("MMMM dd, yyyy").format(ldt);
-    }
 
-    public void setCreatedDate(String createdDate) {
-        this.createdDate = formatLocalDateTime(createdDate);
-    }
-
-    public void calculateAndSetOrderTotal() {
-        double total = 0;
-        for (OrderItem orderItem: orderItems) {
-            total += orderItem.getQuantity()*orderItem.getUnitPrice();
-        }
-        orderTotal = total;
-    }
 
 }

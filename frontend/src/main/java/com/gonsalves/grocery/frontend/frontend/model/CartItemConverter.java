@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 public class CartItemConverter {
 
-    public static Order convert(List<CartItem> cartItems, String customerId ) {
+    public static List<OrderItem> convert(List<CartItem> cartItems ) {
         List<OrderItem> orderItems = new ArrayList<>();
         for (CartItem item : cartItems) {
             OrderItem orderItem = OrderItem.builder()
@@ -16,12 +16,7 @@ public class CartItemConverter {
                     .build();
             orderItems.add(orderItem);
         }
-        return Order.builder()
-                .userId(customerId)
-                .orderItems(orderItems)
-                .status("PROCESSING")
-                .shippingAddress("1234 Main St, Cupertino, CA, 98765, USA")
-                .build();
+        return orderItems;
 
 
 

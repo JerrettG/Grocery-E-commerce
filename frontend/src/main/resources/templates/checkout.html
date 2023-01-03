@@ -8,31 +8,150 @@
     <link rel="stylesheet" th:href="@{/css/checkout.css}"/>
     <link th:href="@{/css/style.css}" rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body>
     <nav th:replace="fragments :: navbar"></nav>
 <!-- Display a payment form -->
     <section>
     <div class="payment-form-container">
-        <form id="payment-form" class="checkout-form">
-            <div id="payment-element">
-                <!--Stripe.js injects the Payment Element-->
+        <div class="checkout-form-container checkout-form">
+            <div class="checkout-form-heading">
+                <h2 id="shipping-info-header">Shipping info</h2>
+                <span id="change-shipping-info" class="change-checkout-form hidden">Change</span>
             </div>
-            <button id="submit" class="checkout-buttons" onsubmit="">
-                <div class="spinner hidden" id="spinner"></div>
-                <span id="button-text">Pay now</span>
-            </button>
-            <div id="payment-message" class="hidden"></div>
-        </form>
+            <form id="shipping-form">
+                <div class="first-last-name-container">
+                    <div class="name-container">
+                        <p>First name</p>
+                        <input type="text" name="firstName" required>
+                    </div>
+                    <div class="name-container">
+                        <p>Last name</p>
+                        <input type="text" name="lastName" required>
+                    </div>
+                </div>
+                <p>Address</p>
+                <div class="address-container">
+                    <input type="text" name="addressFirstLine" required placeholder="Street address or P.O. Box">
+                    <input type="text" name="addressSecondLine" placeholder="Apt, suite, unit, building, floor, etc.">
+                </div>
+                <div class="city-state-zip-container">
+                    <div class="city-container">
+                        <p>City</p>
+                        <input type="text" name="city" required>
+                    </div>
+                    <div class="state-container">
+                        <p>State</p>
+                        <select name="state" required>
+                            <th:block th:each="state : ${states}">
+                                <option th:value="${state}" th:text="${state}"></option>
+                            </th:block>
+                        </select>
+                    </div>
+                    <div class="zip-container">
+                        <p>Zip code</p>
+                        <input type="text" name="zipCode" required>
+                    </div>
+                </div>
+                <div class="save-default">
+                    <label for="save-default-shipping">Save as default</label>
+                    <input type="checkbox" name="saveDefault" id="save-default-shipping" style="float: left;">
+                </div>
+                <button class="checkout-buttons save-info" id="shipping-form-save">Save info</button>
+            </form>
+        </div>
+        <div class="checkout-form-container checkout-form">
+            <div class="checkout-form-heading">
+                <h2 id="billing-info-header">Billing info</h2>
+                <span id="change-billing-info" class="change-checkout-form hidden">Change</span>
+            </div>
+            <form id="billing-form">
+                <input type="checkbox" name="sameAsShipping" id="same-as-shipping">
+                <label for="same-as-shipping">Same as shipping</label>
+                <fieldset id="billing-collapsible" class="billing-collapsible">
+                    <div class="first-last-name-container">
+                        <div class="name-container">
+                            <p>First name</p>
+                            <input type="text" name="firstName" required>
+                        </div>
+                        <div class="name-container">
+                            <p>Last name</p>
+                            <input type="text" name="lastName" required>
+                        </div>
+                    </div>
+                    <p>Address</p>
+                    <div class="address-container">
+                        <input type="text" name="addressFirstLine" required placeholder="Street address or P.O. Box">
+                        <input type="text" name="addressSecondLine" placeholder="Apt, suite, unit, building, floor, etc.">
+                    </div>
+                    <div class="city-state-zip-container">
+                        <div class="city-container">
+                            <p>City</p>
+                            <input type="text" name="city" required>
+                        </div>
+                        <div class="state-container">
+                            <p>State</p>
+                            <select name="state" required>
+                                <th:block th:each="state : ${states}">
+                                    <option th:value="${state}" th:text="${state}"></option>
+                                </th:block>
+                            </select>
+                        </div>
+                        <div class="zip-container">
+                            <p>Zip code</p>
+                            <input type="text" name="zipCode" required>
+                        </div>
+                    </div>
+                </fieldset>
+                <button class="checkout-buttons save-info" id="billing-form-save">Save info</button>
+            </form>
+        </div>
+        <div class="checkout-form-container checkout-form">
+            <h2>Payment Details</h2>
+            <form id="payment-form">
+                <div id="payment-element">
+                    <!--Stripe.js injects the Payment Element-->
+                    <div class="loading-spinner" style="width: 15%; position:relative; left: 40%;"></div>
+                </div>
+            </form>
+        </div>
+        <div class="checkout-form-container">
+            <h2>Order summary</h2>
+            <div class="checkout-form order-summary-cost-breakdown">
+                <h4 id="order-summary-item-count"></h4>
+                <div class="checkout-subtotal order-summary-cost">
+                    <span>Subtotal</span>
+                    <span id="checkout-subtotal">Pending</span>
+                </div>
+                <div class="checkout-shipping order-summary-cost">
+                    <span>Shipping</span>
+                    <span id="checkout-shipping">Pending</span>
+                </div>
+                <div class="tax order-summary-cost">
+                    <span>Tax</span>
+                    <span id="checkout-tax">Pending</span>
+                </div>
+                <hr>
+                <div class="total order-summary-cost">
+                    <span><strong>Total</strong></span>
+                    <span id="checkout-total"><strong>Pending</strong></span>
+                </div>
+                <button form="payment-form" id="submit"class="checkout-buttons">
+                    <div class="spinner hidden" id="spinner"></div>
+                    <span id="button-text">Place order</span>
+                </button>
+                <div id="payment-message" class="hidden"></div>
+            </div>
+        </div>
     </div>
     </section>
 </body>
 
 <script src="https://js.stripe.com/v3/"></script>
-<script th:src="@{/pages/checkout.js}" defer></script>
+<script th:src="@{/js/checkout.bundle.js}" defer></script>
 <script th:inline="javascript">
-    var stripePublicKey = /*[[${stripePublicKey}]]*/ null;
-    const items = /*[[${cartItems}]]*/ [];
-    const customerId = /*[[${customerId}]]*/ '';
+    const stripePublicKey = /*[[${stripePublicKey}]]*/ null;
+    const userId = /*[[${userId}]]*/ '';
 </script>
 </html>

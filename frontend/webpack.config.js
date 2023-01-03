@@ -5,18 +5,25 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const WarningsToErrorsPlugin = require('warnings-to-errors-webpack-plugin');
 const {auto} = require("@popperjs/core");
 
-
 module.exports = (env, argv) => ({
-  entry: [
-      './src/main/resources/js/app.js',
-    './src/main/resources/js/pages/shoppingCart.js',
-    './src/main/resources/js/util/baseClass.js',
-    './src/main/resources/js/util/DataStore.js',
-      './src/main/resources/js/api/cartServiceClient.js'
-  ],
+  entry: {
+    app: './src/main/resources/js/app.js',
+    index: './src/main/resources/js/pages/index.js',
+    shoppingCart: './src/main/resources/js/pages/shoppingCart.js',
+    checkout: './src/main/resources/js/pages/checkout.js',
+    product: './src/main/resources/js/pages/product.js',
+    success: './src/main/resources/js/pages/success.js',
+    // './src/main/resources/js/pages/profile.js',
+    baseClass: './src/main/resources/js/util/baseClass.js',
+    dataStore:'./src/main/resources/js/util/DataStore.js',
+    cartServiceClient: './src/main/resources/js/api/cartServiceClient.js',
+    customerProfileServiceClient: './src/main/resources/js/api/customerProfileServiceClient.js',
+    orderServiceClient: './src/main/resources/js/api/orderServiceClient.js',
+    productServiceClient: './src/main/resources/js/api/productServiceClient.js'
+},
   output: {
     path: path.resolve(__dirname, './target/classes/static'),
-    filename: 'js/app.js'
+    filename: 'js/[name].bundle.js'
   },
   devtool: argv.mode === 'production' ? false : 'eval-source-map',
   optimization: {
@@ -30,7 +37,7 @@ module.exports = (env, argv) => ({
     new MiniCssExtractPlugin({
       filename: "css/bundle.css"
     }),
-    new WarningsToErrorsPlugin()
+    new WarningsToErrorsPlugin(),
   ],
   module: {
     rules: [
@@ -98,17 +105,11 @@ module.exports = (env, argv) => ({
 
     compress: true,
     proxy: {
-      '/': {
-        target: 'http://localhost:8074'
-      },
-      '/api/v1': {
-        target: 'http://localhost:8090',
-      }
+      '/api': 'http://localhost:8090',
+      '/': 'http://localhost:8074'
     },
     watchFiles: [
-        'src/main/resources/templates/**/*.html',
         'src/main/resources/js/**/*.js',
-        'src/main/resources/static/css/*.css'
     ],
   }
 });

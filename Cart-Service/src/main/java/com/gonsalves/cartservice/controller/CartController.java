@@ -39,7 +39,6 @@ public class CartController {
     @PostMapping("/cart/{userId}/cartItem")
     public @ResponseBody ResponseEntity<CartItemResponse> addCartItem(@RequestBody AddItemToCartRequest request) {
         CartItem cartItem = CartItem.builder()
-                .id(randomUUID().toString())
                 .userId(request.getUserId())
                 .quantity(Math.abs(request.getQuantity()))
                 .productId(request.getProductId())

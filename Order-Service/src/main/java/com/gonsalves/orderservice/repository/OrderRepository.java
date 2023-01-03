@@ -38,7 +38,7 @@ public class OrderRepository {
     }
 
     public List<OrderEntity> getOrderByPaymentIntentId(String userId, String paymentIntentId) {
-        Map<String, AttributeValue> expected     = new HashMap<String, AttributeValue>();
+        Map<String, AttributeValue> expected = new HashMap<String, AttributeValue>();
         expected.put(":user_id", new AttributeValue(userId));
         expected.put(":payment_intent_id", new AttributeValue(paymentIntentId));
 

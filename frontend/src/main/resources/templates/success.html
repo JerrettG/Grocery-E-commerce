@@ -9,12 +9,19 @@
 <body>
     <th:block th:replace="fragments :: navbar"></th:block>
 
-    <section>
-        <div>
-            <h1>Thank you for your order!</h1>
-<!--            <h3 th:text="|Order no. ${order.getId()}|"></h3>-->
-<!--            <p th:text="|Order status: ${order.getStatus()}|"></p>-->
+    <section style="display: flex;">
+        <div class="thank-you-container">
+            <div class="loading-spinner" style="width: 15%; justify-self: center;"></div>
+            <div class="order-summary-container">
+
+            </div>
         </div>
     </section>
 </body>
+<script src="https://js.stripe.com/v3/"></script>
+<script th:inline="javascript">
+    const stripePublicKey = /*[[${stripePublicKey}]]*/ null;
+    const userId = /*[[${userId}]]*/ '';
+</script>
+<script type="module" th:src="@{/js/success.bundle.js}" defer></script>
 </html>

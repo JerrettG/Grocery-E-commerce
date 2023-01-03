@@ -28,9 +28,33 @@ export default class BaseClass {
             position: 'right',
             close: true,
             style: {
-                background: "linear-gradient(to right, #00b09b, #96c93d)"
+                background: "var(--secondary-color)"
             }
         }).showToast();
+    }
+
+    toggleDropdown(event) {
+        const dropButton = event.srcElement;
+        const ariaExpanded = dropButton.getAttribute('aria-expanded');
+        if (ariaExpanded === 'true') {
+            const dropButtonContainer = dropButton.closest('.dropbutton-container');
+            dropButton.setAttribute('aria-expanded', false);
+            const dropdownContent = dropButtonContainer.nextElementSibling;
+            dropdownContent.style.maxHeight = '40em';
+        }
+        else if (ariaExpanded === 'false') {
+            const dropButtonContainer = dropButton.closest('.dropbutton-container');
+            dropButton.setAttribute('aria-expanded', true);
+            const dropdownContent = dropButtonContainer.nextElementSibling;
+            dropdownContent.style.maxHeight = '0';
+        }
+    }
+
+    showLoading(event, widthPercent) {
+            event.innerHTML =
+                `
+            <div class="loading-spinner" style="width: ${widthPercent}%;"> </div>
+            `
     }
 
     errorHandler(error) {

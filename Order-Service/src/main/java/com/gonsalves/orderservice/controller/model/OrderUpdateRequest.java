@@ -1,5 +1,6 @@
 package com.gonsalves.orderservice.controller.model;
 
+import com.gonsalves.orderservice.service.model.AddressInfo;
 import com.gonsalves.orderservice.service.model.OrderItem;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,8 +15,9 @@ public class OrderUpdateRequest implements OrderRequest{
 
     private String id;
     private String userId;
-    private String shippingAddress;
-    private double orderTotal;
+    private AddressInfo shippingInfo;
+    private AddressInfo billingInfo;
+    private double total;
     private String status;
     private List<OrderItem> orderItems;
 

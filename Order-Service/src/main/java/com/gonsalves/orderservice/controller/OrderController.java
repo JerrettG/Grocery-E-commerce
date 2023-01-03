@@ -1,5 +1,7 @@
 package com.gonsalves.orderservice.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gonsalves.orderservice.controller.model.*;
 import com.gonsalves.orderservice.repository.entity.OrderEntity;
 import com.gonsalves.orderservice.exception.OrderAlreadyExistsException;
@@ -45,11 +47,33 @@ class OrderController {
             return ResponseEntity.notFound().build();
         }
     }
-    @PostMapping(value = "/order")
+    @GetMapping("/order/user/{userId}/paymentIntent/{paymentIntentId}")
+    public ResponseEntity<OrderResponse> getOrderByPaymentIntentId(
+            @PathVariable("paymentIntentId") String paymentIntentId,
+            @PathVariable("userId") String userId) {
+        try {
+            Order order = orderService.getOrderByPaymentIntendId(userId, paymentIntentId);
+            OrderResponse response = convertToResponse(order);
+            return ResponseEntity.ok().body(response);
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping( "/order")
     public ResponseEntity<OrderResponse> createOrder(@RequestBody OrderCreateRequest request){
         try {
-            Order order = convertToOrderFromRequest(request);
+            Order order = new Order();
+            order.setUserId(request.getUserId());
             order.setPaymentIntentId(request.getPaymentIntentId());
+            order.setShippingInfo(request.getShippingInfo());
+            order.setBillingInfo(request.getBillingInfo());
+            order.setSubtotal(request.getSubtotal());
+            order.setTax(request.getTax());
+            order.setShippingCost(request.getShippingCost());
+            order.setTotal(request.getTotal());
+            order.setStatus(request.getStatus());
+            order.setOrderItems(request.getOrderItems());
             Order createdOrder = orderService.createOrder(order);
             OrderResponse response = convertToResponse(createdOrder);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -83,8 +107,8 @@ class OrderController {
     private Order convertToOrderFromRequest(OrderRequest request) {
         return Order.builder()
                 .userId(request.getUserId())
-                .shippingAddress(request.getShippingAddress())
-                .orderTotal(request.getOrderTotal())
+                .shippingInfo(request.getShippingInfo())
+                .total(request.getTotal())
                 .status(request.getStatus())
                 .orderItems(request.getOrderItems())
                 .build();
@@ -94,8 +118,12 @@ class OrderController {
         return new OrderResponse(
                 order.getId(),
                 order.getUserId(),
-                order.getShippingAddress(),
-                order.getOrderTotal(),
+                order.getShippingInfo(),
+                order.getBillingInfo(),
+                order.getSubtotal(),
+                order.getTax(),
+                order.getShippingCost(),
+                order.getTotal(),
                 order.getStatus(),
                 order.getOrderItems(),
                 order.getCreatedDate()

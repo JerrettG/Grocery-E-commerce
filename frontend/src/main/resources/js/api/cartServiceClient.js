@@ -54,9 +54,10 @@ export default class CartServiceClient extends BaseClass {
         }
     }
 
-    async removeItemFromCart(userId, cartItem, errorCallback) {
+    async removeItemFromCart(userId, cartItemId, errorCallback) {
         try {
-
+            const response = this.client.delete(`/api/v1/cartService/cart/${userId}/cartItem/${cartItemId}`)
+            return response;
         } catch (error) {
             this.handleError('removeItemFromCart', error, errorCallback)
         }
