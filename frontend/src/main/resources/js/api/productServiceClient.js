@@ -74,7 +74,7 @@ export default class ProductServiceClient extends BaseClass {
     async updateProduct(productId, name, price, unitMeasurement,
                                 description, category, imageUrl, rating, errorCallback) {
         try {
-            const response = await this.client.put(`/product`,
+            const response = await this.client.put(`/api/v1/productService/product`,
                 {
                     productId: productId,
                     name: name,

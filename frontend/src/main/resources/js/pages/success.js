@@ -1,6 +1,7 @@
 import BaseClass from "../util/baseClass";
 import DataStore from "../util/DataStore";
 import OrderServiceClient from "../api/orderServiceClient";
+import CartServiceClient from "../api/cartServiceClient";
 
 export default class SuccessPage extends BaseClass {
 
@@ -13,11 +14,12 @@ export default class SuccessPage extends BaseClass {
 
     async mount() {
         this.orderServiceClient = new OrderServiceClient();
-
+        this.cartServiceClient = new CartServiceClient();
         //Controls navbar dropdowns
         document.querySelectorAll('.toggle-dropdwn-button')
             .forEach((element) => element.addEventListener("click", this.toggleDropdown));
-
+        document.querySelector('.menu-icon').addEventListener('click', this.openNav);
+        document.querySelector('.closebtn').addEventListener('click', this.closeNav);
         // This is your test publishable API key.
         this.stripe = Stripe(stripePublicKey);
         // The items the customer wants to buy
@@ -92,13 +94,15 @@ export default class SuccessPage extends BaseClass {
         const paymentIntentId = new URLSearchParams(window.location.search).get(
             "payment_intent"
         );
-        // window.history.replaceState({}, document.title, "/success");
+        window.history.replaceState({}, document.title, "/success");
         const { paymentIntent } = await this.stripe.retrievePaymentIntent(clientSecret);
-
+        console.log(paymentIntent);
         switch (paymentIntent.status) {
             case "succeeded":
-                let result = await this.orderServiceClient.getOrderByPaymentId(userId, paymentIntentId);
+                let result = await this.orderServiceClient.getOrderByPaymentId(userId, paymentIntentId, this.errorHandler);
                 if (result) {
+                    await this.cartServiceClient.clearCart(result.userId, this.errorHandler);
+                    this.orderServiceClient.updateOrder(result.id, result.userId, result.shippingInfo, result.billingInfo, "PROCESSING", result.orderItems, this.errorHandler);
                     this.dataStore.set("order", result);
                 }
                 this.showMessage("Payment succeeded!");

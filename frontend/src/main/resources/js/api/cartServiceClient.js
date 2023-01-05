@@ -71,6 +71,15 @@ export default class CartServiceClient extends BaseClass {
         }
     }
 
+    async clearCart(userId, errorCallback) {
+        try{
+            const response = this.client.delete(`/api/v1/cartService/cart/${userId}`);
+            return response.data;
+        } catch (error) {
+            this.handleError('clearCart', error, errorCallback);
+        }
+    }
+
 
     /**
      * Helper method to log the error and run any error functions.

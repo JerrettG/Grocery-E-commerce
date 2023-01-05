@@ -18,6 +18,8 @@ class ProductPage extends BaseClass {
         //Controls navbar dropdowns
         document.querySelectorAll('.toggle-dropdwn-button')
             .forEach((element) => element.addEventListener("click", this.toggleDropdown));
+        document.querySelector('.menu-icon').addEventListener('click', this.openNav);
+        document.querySelector('.closebtn').addEventListener('click', this.closeNav);
 
         document.getElementById("add-to-cart-button").addEventListener("click", this.onAddItemToCart);
         document.getElementById("decrement-quantity-button").addEventListener("click", this.decreaseQuantity);

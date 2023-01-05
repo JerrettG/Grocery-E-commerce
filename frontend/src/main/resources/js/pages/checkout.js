@@ -2,6 +2,7 @@ import BaseClass from "../util/baseClass";
 import DataStore from "../util/DataStore";
 import CartServiceClient from "../api/cartServiceClient";
 import OrderServiceClient from "../api/orderServiceClient";
+import CustomerProfileServiceClient from "../api/customerProfileServiceClient";
 
 export default class CheckoutPage extends BaseClass {
 
@@ -17,20 +18,31 @@ export default class CheckoutPage extends BaseClass {
     async mount() {
         this.cartServiceClient = new CartServiceClient();
         this.orderServiceClient = new OrderServiceClient();
+        this.profileServiceClient = new CustomerProfileServiceClient();
         this.SHIPPING_FLAT_RATE = 7.99;
         // This is your test publishable API key.
         this.stripe = Stripe(stripePublicKey);
         // The items the customer wants to buy
         let result = await this.cartServiceClient.getCartForUserId(userId, this.errorHandler);
-        if (result) {
+        if (result && result.cartItems.length > 0) {
             this.items = result.cartItems;
             this.subtotal = result.subtotal;
+        } else {
+            window.location.href = "/";
         }
         let numItems = this.items.reduce((total, item) => total + item.quantity, 0);
 
         //Controls navbar dropdowns
         document.querySelectorAll('.toggle-dropdwn-button')
             .forEach((element) => element.addEventListener("click", this.toggleDropdown));
+        document.querySelector('.menu-icon').addEventListener('click', this.openNav);
+        document.querySelector('.closebtn').addEventListener('click', this.closeNav);
+
+        document.querySelectorAll('.checkout-form input')
+            .forEach(input => {
+                input.addEventListener("invalid", function () {input.classList.add("invalidInput");});
+                input.addEventListener("input", function () {input.classList.remove("invalidInput")});
+            });
         document.getElementById("same-as-shipping").addEventListener("change", this.toggleSameAsShipping);
         document.getElementById("shipping-form").addEventListener("submit", this.handleShippingSubmit);
         document.getElementById("billing-form").addEventListener("submit", this.handleBillingSubmit);
@@ -38,6 +50,7 @@ export default class CheckoutPage extends BaseClass {
             .querySelector("#payment-form")
             .addEventListener("submit", this.handleOrderSubmit);
         document.getElementById('order-summary-item-count').innerHTML = `Items (${numItems})`;
+
         this.dataStore.addChangeListener(this.initialize);
     }
 
@@ -58,6 +71,7 @@ export default class CheckoutPage extends BaseClass {
     }
 // Fetches a payment intent and captures the client secret
     async initialize() {
+
         const shippingInfo = this.dataStore.get("shippingInfo");
         let billingInfo = this.dataStore.get("billingInfo");
         const sameAsShipping = this.dataStore.get('sameAsShipping');
@@ -68,7 +82,17 @@ export default class CheckoutPage extends BaseClass {
 
             let status = "AWAITING_PAYMENT";
             let subtotal = this.subtotal;
-            let items = this.items;
+            let orderItems = [];
+            for (let item of this.items) {
+                orderItems.push(
+                    {
+                        itemName: item.productName,
+                        imageUrl: item.productImageUrl,
+                        quantity: item.quantity,
+                        unitPrice: item.productPrice
+                    }
+                )
+            }
             let taxRate = 0.0775;
             let tax = Number((subtotal * taxRate).toFixed(2));
             let shippingCost = Number(this.SHIPPING_FLAT_RATE.toFixed(2));
@@ -79,22 +103,17 @@ export default class CheckoutPage extends BaseClass {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({
-                            items: items,
-                            order: {
-                                userId: userId,
-                                subtotal: subtotal,
-                                shippingCost: shippingCost,
-                                tax: tax,
-                                total: total,
-                                status: status,
-                                shippingInfo: shippingInfo,
-                                billingInfo: billingInfo
-                            }
+                            shippingInfo: shippingInfo,
+                            userId: userId,
+                            total: total
                         }
                     ),
                 });
-            const {clientSecret} = await response.json();
+            const jsonResponse = await response.json();
+            const {clientSecret} = jsonResponse;
+            const {paymentIntentId} = jsonResponse;
 
+            await this.orderServiceClient.createOrder(userId, paymentIntentId, orderItems, subtotal, shippingCost, total, status, shippingInfo, billingInfo, this.errorHandler);
 
             const appearance = {
                 theme: 'stripe',
@@ -165,8 +184,6 @@ export default class CheckoutPage extends BaseClass {
 
         if (sameAsShipping) {
             this.dataStore.set("sameAsShipping", true);
-            const shippingInfo = this.dataStore.get("shippingInfo");
-            this.dataStore.set("billingInfo", shippingInfo);
         } else {
             this.dataStore.set("sameAsShipping", false);
             let billingInfo = {
@@ -201,6 +218,10 @@ export default class CheckoutPage extends BaseClass {
             city: shippingFormData.get('city'),
             state: shippingFormData.get('state'),
             zipCode: shippingFormData.get('zipCode')
+        }
+
+        if (shippingFormData.get("saveDefault")) {
+            this.profileServiceClient.updateCustomerProfile(userId, null, null, null, shippingInfo, this.errorHandler);
         }
 
         this.dataStore.set("shippingInfo", shippingInfo);

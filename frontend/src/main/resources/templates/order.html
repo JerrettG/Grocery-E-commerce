@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Your order</title>
+  <link th:href="@{/css/style.css}" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+</head>
+<body>
+<nav th:replace="fragments :: navbar"></nav>
+
+<section class="order-section">
+  <div class="order-container">
+    <h2 th:text="|Order no. ${orderId}|"></h2>
+    <div class="order">
+      <div class="order-info"></div>
+    </div>
+  </div>
+</section>
+</body>
+<script th:inline="javascript">
+  const userId = /*[[${userId}]]*/ '';
+  const orderId = /*[[${orderId}]]*/ '';
+</script>
+<script type="module" th:src="@{/js/order.bundle.js}" defer></script>
+</html>

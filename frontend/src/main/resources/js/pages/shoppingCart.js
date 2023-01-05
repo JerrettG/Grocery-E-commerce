@@ -20,6 +20,8 @@ class ShoppingCartPage extends BaseClass {
         //Controls navbar dropdowns
         document.querySelectorAll('.toggle-dropdwn-button')
             .forEach((element) => element.addEventListener("click", this.toggleDropdown));
+        document.querySelector('.menu-icon').addEventListener('click', this.openNav);
+        document.querySelector('.closebtn').addEventListener('click', this.closeNav);
 
         this.dataStore.addChangeListener(this.renderShoppingCart);
         this.onGetShoppingCartByUserId();

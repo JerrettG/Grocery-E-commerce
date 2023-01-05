@@ -20,14 +20,20 @@ class IndexPage extends BaseClass {
     async mount() {
         this.productServiceClient = new ProductServiceClient();
         this.cartServiceClient = new CartServiceClient();
+
+        //Controls navbar dropdowns
+        document.querySelectorAll('.toggle-dropdwn-button')
+            .forEach((element) => element.addEventListener("click", this.toggleDropdown));
+        document.querySelector('.menu-icon').addEventListener('click', this.openNav);
+        document.querySelector('.closebtn').addEventListener('click', this.closeNav);
+
+
+        // TODO make the search bar take the user to the products page on enter
         document.getElementById("search-bar").addEventListener("keyup", this.refreshSearch);
         let categoryLinks = document.querySelectorAll('.category-link');
         for (let categoryLink of categoryLinks) {
             categoryLink.addEventListener('click', this.onGetProductsByCategory);
         }
-        //Controls navbar dropdowns
-        document.querySelectorAll('.toggle-dropdwn-button')
-            .forEach((element) => element.addEventListener("click", this.toggleDropdown));
 
         this.dataStore.addChangeListener(this.renderProducts);
         await this.onGetAllProducts();
@@ -79,9 +85,9 @@ class IndexPage extends BaseClass {
 
     async onGetAllProducts(event) {
         this.showLoading(document.getElementById("product-catalog"), 15);
-        let { productList } = await this.productServiceClient.getAllProducts(this.errorHandler);
-        this.dataStore.set('products', productList);
-        if (productList) {
+        let result = await this.productServiceClient.getAllProducts(this.errorHandler);
+        this.dataStore.set('products', result);
+        if (result) {
             this.showMessage(`Product catalog loaded successfully`);
         } else {
             this.errorHandler("Error getting product catalog. Try again...");

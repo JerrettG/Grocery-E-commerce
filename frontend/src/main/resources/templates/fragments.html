@@ -15,7 +15,7 @@
                 </div>
                 <div class="navbar-link-container">
                     <input class="menu-btn" type="checkbox" id="menu-btn" />
-                    <label class="menu-icon" for="menu-btn" onclick="openNav()"><span class="nav-icon"></span></label>
+                    <label class="menu-icon" for="menu-btn" onclick="this.openNav()"><span class="nav-icon"></span></label>
                     <ul class="menu">
                         <li><a th:href="@{/}">Home</a></li>
                         <li class="list-dropdown">
@@ -58,7 +58,7 @@
                                         <i class="fa fa-caret-down"></i>
                                     </button>
                                 </div>
-                                <ul class="dropdown-content">
+                                <ul class="dropdown-content account-dropdown-content">
                                     <li><a class="dropdown-links" th:href="@{/profile}">Profile</a></li>
                                     <li><a class="dropdown-links" sec:authorize="!isAuthenticated()" th:href="@{/oauth2/authorization/auth0}">Login</a></li>
                                     <li><a class="dropdown-links" sec:authorize="isAuthenticated()" th:href="@{/logout}">Logout</a></li>
@@ -73,21 +73,13 @@
             </div>
         </nav>
         <div id="mySidenav" class="sidenav">
-            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+            <span class="closebtn" onclick="this.closeNav()">&times;</span>
             <p class="sidenav-header">Categories</p>
             <th:block th:insert="fragments :: category-links">
 
             </th:block>
         </div>
-        <script>
-            function openNav() {
-                document.getElementById("mySidenav").style.width = "275px";
-            }
 
-            function closeNav() {
-                document.getElementById("mySidenav").style.width = "0";
-            }
-        </script>
     </th:block>
 
 

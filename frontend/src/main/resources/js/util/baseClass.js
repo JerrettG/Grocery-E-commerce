@@ -1,4 +1,5 @@
 import Toastify from "toastify-js";
+import {DateTimeFormatter} from "js-joda";
 
 export default class BaseClass {
     /**
@@ -18,6 +19,11 @@ export default class BaseClass {
             currency: 'USD',
         });
         return formatter.format(amount);
+    }
+
+    formatDate(localDateTime) {
+        const date = new Date(localDateTime);
+        return date.toLocaleDateString('en-us', { weekday:"short", year:"numeric", month:"short", day:"numeric", hour: "numeric", minute: "numeric"});
     }
 
     showMessage(message) {
@@ -48,6 +54,14 @@ export default class BaseClass {
             const dropdownContent = dropButtonContainer.nextElementSibling;
             dropdownContent.style.maxHeight = '0';
         }
+    }
+
+    openNav() {
+        document.getElementById("mySidenav").style.width = "275px";
+    }
+
+    closeNav() {
+        document.getElementById("mySidenav").style.width = "0";
     }
 
     showLoading(event, widthPercent) {

@@ -7,7 +7,8 @@
     --secondary-color-rgba: rgba(227,143,29, 70%);
     --primary-color-hover: #375922;
     --add-cart-btn-color: #470;
-    --error-color: rgba(194, 0, 0, 1);
+    --error-color: #df1b41;
+    --error-color-rgb: 194,0,0;
 }
 
 body {
@@ -96,7 +97,7 @@ section {
     border: solid thin #3a3a3a;
 }
 .menu li:hover, .dropdown-content a:hover, .account-links li:hover, .list-dropdown:hover, .dropdown-links:hover {
-    background-color: #375922;
+    text-decoration: underline;
 }
 .menu {
     display: none;
@@ -148,6 +149,9 @@ section {
     transition: 0.5s;
     padding-top: 60px;
 }
+.sidenav ul {
+    list-style: none;
+}
 .sidenav-header {
     display: block;
     color: rgb(255 211 149);
@@ -156,19 +160,17 @@ section {
 }
 
 .sidenav a {
-    padding: 8px 8px 8px 32px;
+    padding: 8px 8px 8px 0;
     text-decoration: none;
     font-size: 16px;
     color: #ffffff;
     display: block;
-    transition: 0.3s;
+    transition: all 0.3s ease;
 }
 
-.sidenav a:hover {
-    color: #375922;
-}
 
-.sidenav .closebtn {
+.closebtn {
+    cursor: pointer;
     position: absolute;
     top: 0;
     right: 25px;
@@ -187,7 +189,6 @@ section {
 @media (min-width:1058px) {
     .navbar li {
         float: left;
-        /*border-right: 1px solid #aaa;*/
     }
     .navbar li a {
         padding:20px 30px;
@@ -222,7 +223,7 @@ section {
         font-family: inherit;
         margin: auto;
     }
-    .dropdown-content, .account-dropdown-content {
+    .dropdown-content {
         display: flex;
         flex-direction: column;
         position: absolute;
@@ -242,13 +243,6 @@ section {
         text-align: left;
     }
 
-    .dropdown-content a:hover {
-        background-color: #375922;
-    }
-
-    .account-dropdown:hover .account-dropdown-content {
-        display: block;
-    }
 }
 
 .menu-btn {
@@ -266,11 +260,22 @@ section {
     justify-content: flex-end;
     align-items: center;
 }
-.account-button {
-    padding:0;
+.account-dropbutton{
+    padding: 20px;
 }
 .account-dropdown {
     padding: 0;
+}
+
+.account-dropdown-content {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    background-color: var(--primary-color);
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    transition: max-height .5s ease-out;
 }
 
 .account-dropdown, .account-dropbutton-container, .account-dropbutton {
@@ -788,6 +793,11 @@ section {
     outline: solid 3px #0573E13F;
     box-shadow: 0px 1px 1px rgb(0 0 0 / 3%), 0px 3px 6px rgb(0 0 0 / 2%),0 0 0 3px var(hsla(210, 96%, 45%, 25%)), 0 1px 1px 0 var(rgba(0, 0, 0, 0.08));
 }
+.invalidInput {
+    color: var(--error-color) !important;
+    border-color: var(--error-color) !important;
+    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.03), 0px 3px 6px rgba(0, 0, 0, 0.02), 0 0 0 1px var(--error-color) !important;;
+}
 .checkout-form select{
     padding: 0.5em;
     height: 100%;
@@ -869,4 +879,14 @@ section {
 
 .order-summary-billing p, .order-summary-shipping p{
     color: #30313d;
+}
+
+
+/******* ORDER PAGE ****/
+.order-container {
+    display: flex;
+    flex-direction: column;
+    row-gap: 2em;
+    width: 80%;
+    margin: 0 auto
 }

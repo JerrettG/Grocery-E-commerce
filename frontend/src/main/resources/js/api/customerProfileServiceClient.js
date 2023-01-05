@@ -53,15 +53,15 @@ export default class CustomerProfileServiceClient extends BaseClass {
         }
     }
 
-    async updateCustomerProfile(userId, email, firstName, lastName, shippingAddress, errorCallback) {
+    async updateCustomerProfile(userId, email, firstName, lastName, shippingInfo, errorCallback) {
         try {
-            const response = await this.client.put(`/user`,
+            const response = await this.client.put(`/api/v1/customerProfileService/user`,
                 {
                     userId: userId,
                     email: email,
                     firstName: firstName,
                     lastName: lastName,
-                    shippingAddress: shippingAddress
+                    shippingInfo: shippingInfo
                 }
             );
             return response.data;
@@ -87,6 +87,7 @@ export default class CustomerProfileServiceClient extends BaseClass {
             this.handleError('deactivateCustomerProfile', error, errorCallback)
         }
     }
+
 
 
     /**

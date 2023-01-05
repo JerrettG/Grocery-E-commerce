@@ -14,22 +14,21 @@
         <div class="account-details">
             <h2>Account Details</h2>
             <div class="account-info">
-                <h4>Email</h4>
-                <p th:text="${profile.getEmail()}" id="account-email"></p>
-                <h4>First Name</h4>
-                <p th:text="${profile.getFirstName()}" id="account-first-name"></p>
-                <h4>Last Name</h4>
-                <p th:text="${profile.getLastName()}" id="account-last-name"></p>
-                <h4>Preferred Shipping Address</h4>
-                <p th:text="${profile.getShippingAddress()}" id="account-shipping-address"></p>
+
             </div>
         </div>
     </section>
     <div class="orders-section">
         <div class="orders-container">
             <h2>Your orders at a glance</h2>
-            <th:block th:each="order: ${orders}" th:insert="fragments :: order"></th:block>
+            <div class="orders">
+
+            </div>
         </div>
     </div>
 </body>
+<script th:inline="javascript">
+    const userId = /*[[${userId}]]*/ '';
+</script>
+<script type="module" th:src="@{/js/profile.bundle.js}" defer></script>
 </html>

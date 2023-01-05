@@ -80,10 +80,18 @@ public class UIController {
 
 
     @RequestMapping("/profile")
-    public String profile(HttpServletRequest request, @AuthenticationPrincipal OidcUser principal, Authentication authentication, Model model) {
+    public String profile(@AuthenticationPrincipal OidcUser principal, Authentication authentication, Model model) {
         String userId = authentication.getName();
         model.addAttribute("userId", userId);
         return "profile";
+    }
+
+    @RequestMapping("/order")
+    public String order(@RequestParam("orderId") String orderId, Authentication authentication, Model model) {
+        String userId = authentication.getName();
+        model.addAttribute("orderId", orderId);
+        model.addAttribute("userId", userId);
+        return "order";
     }
 
     @RequestMapping("/success")

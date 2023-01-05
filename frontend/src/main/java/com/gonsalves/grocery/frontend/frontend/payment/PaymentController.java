@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gonsalves.grocery.frontend.frontend.model.*;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.issuing.Card;
 import com.stripe.param.PaymentIntentCreateParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -28,26 +29,34 @@ public class PaymentController {
 
     @PostMapping("/create-payment-intent")
     public @ResponseBody CreatePaymentResponse createPaymentIntent(@RequestBody CreatePayment createPayment) throws StripeException, JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        Order order = createPayment.getOrder();
-        order.setOrderItems(CartItemConverter.convert(createPayment.getItems()));
+
+        AddressInfo shippingInfo = createPayment.getShippingInfo();
+        PaymentIntentCreateParams.Shipping.Address address = PaymentIntentCreateParams.Shipping.Address.builder()
+                .setLine1(shippingInfo.getAddressFirstLine())
+                .setLine2(shippingInfo.getAddressSecondLine())
+                .setCity(shippingInfo.getCity())
+                .setState(shippingInfo.getState())
+                .setPostalCode(shippingInfo.getZipCode())
+                .setCountry("USA")
+                .build();
+        PaymentIntentCreateParams.Shipping shipping = PaymentIntentCreateParams.Shipping.builder()
+                .setAddress(address)
+                .setName(String.format("%s %s", shippingInfo.getFirstName(), shippingInfo.getLastName()))
+                .build();
+        //TODO change this controller to use an idempotency key allowing only one payment intent to be created per checkout session
         PaymentIntentCreateParams params =
                 PaymentIntentCreateParams.builder()
-                        .setAmount((long) (order.getTotal()*100))
+                        .setCustomer(createPayment.getUserId())
+                        .setAmount((long) (createPayment.getTotal()*100))
                         .setCurrency("usd")
+                        .setShipping(shipping)
+                        .addPaymentMethodType("card")
+                        //What shows up on a customer's card statement
+                        .setStatementDescriptor("Grocery E-commerce")
                         .build();
-
         PaymentIntent paymentIntent = PaymentIntent.create(params);
-        order.setPaymentIntentId(paymentIntent.getId());
-        String body = objectMapper.writeValueAsString(order);
 
-        Order response = webClient.post()
-                .uri("/api/v1/orderService/order")
-                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .bodyValue(order)
-                .exchangeToMono(res -> res.bodyToMono(Order.class))
-                .block();
-        return new CreatePaymentResponse(paymentIntent.getClientSecret());
+        return new CreatePaymentResponse(paymentIntent.getClientSecret(), paymentIntent.getId());
 
     }
 

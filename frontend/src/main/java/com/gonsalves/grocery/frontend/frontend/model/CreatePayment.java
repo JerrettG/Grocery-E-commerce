@@ -10,7 +10,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreatePayment {
-    private List<CartItem> items;
-    private Order order;
 
+    private AddressInfo shippingInfo;
+    private String userId;
+    private Double total;
 }

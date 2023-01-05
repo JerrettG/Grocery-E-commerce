@@ -37,7 +37,7 @@ export default class OrderServiceClient extends BaseClass {
 
     async getOrderByOrderId(orderId, userId, errorCallback) {
         try {
-            const response = await this.client.get(`/order/${orderId}/user/${userId}`);
+            const response = await this.client.get(`/api/v1/orderService/order/${orderId}/user/${userId}`);
             return response.data;
         } catch (error) {
             this.handleError('getOrderByOrderId', error, errorCallback);
@@ -74,12 +74,12 @@ export default class OrderServiceClient extends BaseClass {
         }
     }
 
-    async updateOrder(id, userId, shippingAddress, total, status, orderItems, errorCallback) {
+    async updateOrder(id, userId, shippingInfo, billingInfo, status, orderItems, errorCallback) {
         try {
-            const response = await this.client.put(`/order`,
+            const response = await this.client.put(`/api/v1/orderService/order`,
                 {
-                    id: id,
                     userId: userId,
+                    id: id,
                     shippingInfo: shippingInfo,
                     billingInfo: billingInfo,
                     status: status,
