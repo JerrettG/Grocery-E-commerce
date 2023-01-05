@@ -13,8 +13,8 @@ public interface OrderRequest {
     void setShippingInfo(AddressInfo shippingInfo);
     AddressInfo getBillingInfo();
     void setBillingInfo(AddressInfo billingInfo);
-    double getTotal();
-    void setTotal(double total);
+    Double getTotal();
+    void setTotal(Double total);
     String getStatus();
     void setStatus(String status);
     List<OrderItem> getOrderItems();

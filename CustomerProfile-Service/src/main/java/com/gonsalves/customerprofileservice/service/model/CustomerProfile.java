@@ -15,7 +15,7 @@ public class CustomerProfile {
     private String email;
     private String firstName;
     private String lastName;
-    private String shippingAddress;
+    private AddressInfo shippingInfo;
     private String status;
 
 }

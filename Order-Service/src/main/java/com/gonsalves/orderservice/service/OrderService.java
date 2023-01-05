@@ -149,6 +149,7 @@ public class OrderService {
                 .total(order.getTotal())
                 .status(Status.valueOf(order.getStatus()))
                 .orderItemEntities(orderItemEntities)
+                .createdDate(order.getCreatedDate())
                 .build();
     }
     private OrderItemEntity convertToEntity(OrderItem orderItem) {

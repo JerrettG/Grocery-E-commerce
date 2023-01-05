@@ -29,12 +29,11 @@ class OrderController {
     }
 
     @GetMapping(value = "/order/all/user/{userId}")
-    public ResponseEntity<OrdersListResponse> getAllOrdersForUserId(@PathVariable String userId) {
+    public ResponseEntity<List<OrderResponse>> getAllOrdersForUserId(@PathVariable String userId) {
         List<Order> orders = orderService.getAllOrdersByUserId(userId);
         List<OrderResponse> orderResponses = new ArrayList<>();
         orders.forEach(order -> orderResponses.add(convertToResponse(order)));
-        OrdersListResponse response = new OrdersListResponse(orderResponses);
-        return ResponseEntity.ok().body(response);
+        return ResponseEntity.ok().body(orderResponses);
     }
     @GetMapping(value = "/order/{orderId}/user/{userId}")
     public ResponseEntity<OrderResponse> getOrderByOrderId(@PathVariable("orderId") String orderId,
@@ -108,6 +107,7 @@ class OrderController {
         return Order.builder()
                 .userId(request.getUserId())
                 .shippingInfo(request.getShippingInfo())
+                .billingInfo(request.getBillingInfo())
                 .total(request.getTotal())
                 .status(request.getStatus())
                 .orderItems(request.getOrderItems())
@@ -117,6 +117,7 @@ class OrderController {
     private OrderResponse convertToResponse(Order order) {
         return new OrderResponse(
                 order.getId(),
+                order.getPaymentIntentId(),
                 order.getUserId(),
                 order.getShippingInfo(),
                 order.getBillingInfo(),

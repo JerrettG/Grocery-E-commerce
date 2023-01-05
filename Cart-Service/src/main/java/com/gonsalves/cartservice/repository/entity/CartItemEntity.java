@@ -21,7 +21,7 @@ public class CartItemEntity {
     private String id;
 
     @DynamoDBAttribute(attributeName = "quantity")
-    private int quantity;
+    private Integer quantity;
     @DynamoDBIndexRangeKey(localSecondaryIndexName = PRODUCT_ID_INDEX, attributeName = "product_id")
     //LSI loads keys only
     private String productId;
@@ -31,7 +31,7 @@ public class CartItemEntity {
     @DynamoDBAttribute(attributeName = "product_image_url")
     private String productImageUrl;
     @DynamoDBAttribute(attributeName = "product_price")
-    private double productPrice;
+    private Double productPrice;
 
 
     @Override

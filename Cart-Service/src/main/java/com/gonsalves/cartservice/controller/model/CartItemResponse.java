@@ -13,9 +13,9 @@ public class CartItemResponse {
 
     private String id;
     private String userId;
-    private int quantity;
+    private Integer quantity;
     private String productName;
     private String productImageUrl;
-    private double productPrice;
+    private Double productPrice;
 
 }

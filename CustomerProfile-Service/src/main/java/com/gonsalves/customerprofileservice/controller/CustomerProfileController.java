@@ -84,7 +84,7 @@ public class CustomerProfileController {
                 profile.getEmail(),
                 profile.getFirstName(),
                 profile.getLastName(),
-                profile.getShippingAddress(),
+                profile.getShippingInfo(),
                 profile.getStatus());
     } 
     
@@ -94,7 +94,7 @@ public class CustomerProfileController {
                 .email(request.getEmail())
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
-                .shippingAddress(request.getShippingAddress())
+                .shippingInfo(request.getShippingInfo())
                 .build();
     }
 

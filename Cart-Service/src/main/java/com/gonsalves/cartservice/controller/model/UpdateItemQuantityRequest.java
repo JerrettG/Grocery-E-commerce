@@ -11,6 +11,6 @@ public class UpdateItemQuantityRequest {
 
     private String id;
     private String userId;
-    private int updatedQuantity;
+    private Integer updatedQuantity;
 
 }

@@ -9,7 +9,7 @@
         <module>Product-Service</module>
         <module>Order-Service</module>
         <module>Cart-Service</module>
-        <module>UI</module>
+        <module>frontend</module>
         <module>DiscoveryService</module>
         <module>Api-Gateway</module>
     </modules>

@@ -25,7 +25,7 @@ public class ProductController {
     }
 
     @GetMapping("/product/all")
-    public ResponseEntity<ProductListResponse> getAllProducts(
+    public ResponseEntity<List<ProductResponse>> getAllProducts(
             @RequestParam(value = "category", defaultValue = "") String category) {
         List<Product> results;
         if (category.isBlank())
@@ -35,7 +35,8 @@ public class ProductController {
         else
             results = new ArrayList<>();
 
-        ProductListResponse body = new ProductListResponse(results);
+        List<ProductResponse> body = new ArrayList<>();
+        results.forEach(product -> body.add(convertToResponse(product)));
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
@@ -53,7 +54,7 @@ public class ProductController {
     public ResponseEntity<ProductResponse> createProduct(@RequestBody ProductCreateRequest createRequest) {
         try {
             Product product = convertToProduct(createRequest);
-            product.setRating(0);
+            product.setRating(0.0);
             Product createdProduct = productService.createProduct(product);
             ProductResponse response = convertToResponse(createdProduct);
             return new ResponseEntity<>(response, HttpStatus.CREATED);

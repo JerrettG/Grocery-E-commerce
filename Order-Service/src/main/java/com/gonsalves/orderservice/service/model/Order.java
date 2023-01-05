@@ -16,10 +16,10 @@ public class Order {
     private String paymentIntentId;
     private AddressInfo shippingInfo;
     private AddressInfo billingInfo;
-    private double subtotal;
-    private double tax;
-    private double shippingCost;
-    private double total;
+    private Double subtotal;
+    private Double tax;
+    private Double shippingCost;
+    private Double total;
     private String status;
     private List<OrderItem> orderItems;
     private String createdDate;

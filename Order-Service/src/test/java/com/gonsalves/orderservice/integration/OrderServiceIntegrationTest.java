@@ -14,6 +14,7 @@ import com.gonsalves.orderservice.repository.OrderRepository;
 import com.gonsalves.orderservice.repository.entity.OrderEntity;
 import com.gonsalves.orderservice.repository.entity.OrderItemEntity;
 import com.gonsalves.orderservice.repository.entity.Status;
+import com.gonsalves.orderservice.service.model.AddressInfo;
 import com.gonsalves.orderservice.service.model.OrderItem;
 import net.andreinc.mockneat.MockNeat;
 import org.junit.jupiter.api.AfterEach;
@@ -63,7 +64,7 @@ public class OrderServiceIntegrationTest {
                 new KeySchemaElement().withAttributeName("user_id").withKeyType(KeyType.HASH),
                 new KeySchemaElement().withAttributeName("payment_intent_id").withKeyType(KeyType.RANGE));
         LocalSecondaryIndex lsi = new LocalSecondaryIndex()
-                .withIndexName(OrderEntity.PAYMENT_INTENT_ID_INDEX)
+                .withIndexName(OrderEntity.ORDER_ID_INDEX)
                 .withKeySchema(lsiKeySchema)
                 .withProjection(new Projection().withProjectionType(ProjectionType.ALL));
         CreateTableRequest request = new CreateTableRequest()
@@ -91,7 +92,27 @@ public class OrderServiceIntegrationTest {
         OrderCreateRequest createRequest = new OrderCreateRequest(
                 userId,
                 paymentId,
-                mockNeat.addresses().valStr(),
+                new AddressInfo(
+                        mockNeat.names().first().valStr(),
+                        mockNeat.names().last().valStr(),
+                        mockNeat.addresses().line1().valStr(),
+                        mockNeat.addresses().line2().valStr(),
+                        mockNeat.cities().us().valStr(),
+                        mockNeat.usStates().valStr(),
+                        mockNeat.ints().valStr()
+                ),
+                new AddressInfo(
+                        mockNeat.names().first().valStr(),
+                        mockNeat.names().last().valStr(),
+                        mockNeat.addresses().line1().valStr(),
+                        mockNeat.addresses().line2().valStr(),
+                        mockNeat.cities().us().valStr(),
+                        mockNeat.usStates().valStr(),
+                        mockNeat.ints().valStr()
+                ),
+                mockNeat.doubles().val(),
+                mockNeat.doubles().val(),
+                mockNeat.doubles().val(),
                 mockNeat.doubles().val(),
                 Status.PROCESSING.toString(),
                 Arrays.asList(new OrderItem(
@@ -119,7 +140,27 @@ public class OrderServiceIntegrationTest {
         OrderCreateRequest createRequest = new OrderCreateRequest(
                 userId,
                 UUID.randomUUID().toString(),
-                mockNeat.addresses().valStr(),
+                new AddressInfo(
+                        mockNeat.names().first().valStr(),
+                        mockNeat.names().last().valStr(),
+                        mockNeat.addresses().line1().valStr(),
+                        mockNeat.addresses().line2().valStr(),
+                        mockNeat.cities().us().valStr(),
+                        mockNeat.usStates().valStr(),
+                        mockNeat.ints().valStr()
+                ),
+                new AddressInfo(
+                        mockNeat.names().first().valStr(),
+                        mockNeat.names().last().valStr(),
+                        mockNeat.addresses().line1().valStr(),
+                        mockNeat.addresses().line2().valStr(),
+                        mockNeat.cities().us().valStr(),
+                        mockNeat.usStates().valStr(),
+                        mockNeat.ints().valStr()
+                ),
+                mockNeat.doubles().val(),
+                mockNeat.doubles().val(),
+                mockNeat.doubles().val(),
                 mockNeat.doubles().val(),
                 Status.PROCESSING.toString(),
                 Arrays.asList(new OrderItem(
@@ -158,7 +199,8 @@ public class OrderServiceIntegrationTest {
         //GIVEN
         String userId = UUID.randomUUID().toString();
         String paymentIntentId = UUID.randomUUID().toString();
-        String shippingAddress = mockNeat.addresses().valStr();
+        AddressInfo shippingInfo = new AddressInfo();
+        AddressInfo billingInfo = new AddressInfo();
         double orderTotal = mockNeat.doubles().val();
         String status = Status.PROCESSING.toString();
         List<OrderItem> orderItems = Arrays.asList(new OrderItem(
@@ -168,7 +210,8 @@ public class OrderServiceIntegrationTest {
                 mockNeat.doubles().val()
         ));
         OrderCreateRequest createRequest = new OrderCreateRequest(
-                userId, paymentIntentId, shippingAddress,
+                userId, paymentIntentId, shippingInfo, billingInfo,
+                mockNeat.doubles().val(), mockNeat.doubles().val(), mockNeat.doubles().val(),
                 orderTotal, status, orderItems
         );
 
@@ -189,7 +232,27 @@ public class OrderServiceIntegrationTest {
         OrderCreateRequest createRequest = new OrderCreateRequest(
                 userId,
                 paymentId,
-                mockNeat.addresses().valStr(),
+                new AddressInfo(
+                        mockNeat.names().first().valStr(),
+                        mockNeat.names().last().valStr(),
+                        mockNeat.addresses().line1().valStr(),
+                        mockNeat.addresses().line2().valStr(),
+                        mockNeat.cities().us().valStr(),
+                        mockNeat.usStates().valStr(),
+                        mockNeat.ints().valStr()
+                ),
+                new AddressInfo(
+                        mockNeat.names().first().valStr(),
+                        mockNeat.names().last().valStr(),
+                        mockNeat.addresses().line1().valStr(),
+                        mockNeat.addresses().line2().valStr(),
+                        mockNeat.cities().us().valStr(),
+                        mockNeat.usStates().valStr(),
+                        mockNeat.ints().valStr()
+                ),
+                mockNeat.doubles().val(),
+                mockNeat.doubles().val(),
+                mockNeat.doubles().val(),
                 mockNeat.doubles().val(),
                 Status.PROCESSING.toString(),
                 Arrays.asList(new OrderItem(
@@ -214,7 +277,27 @@ public class OrderServiceIntegrationTest {
         OrderCreateRequest createRequest = new OrderCreateRequest(
                 userId,
                 UUID.randomUUID().toString(),
-                mockNeat.addresses().valStr(),
+                new AddressInfo(
+                        mockNeat.names().first().valStr(),
+                        mockNeat.names().last().valStr(),
+                        mockNeat.addresses().line1().valStr(),
+                        mockNeat.addresses().line2().valStr(),
+                        mockNeat.cities().us().valStr(),
+                        mockNeat.usStates().valStr(),
+                        mockNeat.ints().valStr()
+                ),
+                new AddressInfo(
+                        mockNeat.names().first().valStr(),
+                        mockNeat.names().last().valStr(),
+                        mockNeat.addresses().line1().valStr(),
+                        mockNeat.addresses().line2().valStr(),
+                        mockNeat.cities().us().valStr(),
+                        mockNeat.usStates().valStr(),
+                        mockNeat.ints().valStr()
+                ),
+                mockNeat.doubles().val(),
+                mockNeat.doubles().val(),
+                mockNeat.doubles().val(),
                 mockNeat.doubles().val(),
                 Status.PROCESSING.toString(),
                 Arrays.asList(new OrderItem(
@@ -234,8 +317,9 @@ public class OrderServiceIntegrationTest {
         OrderUpdateRequest updateRequest = new OrderUpdateRequest(
                 orderId,
                 userId,
-                createResponse.getShippingAddress(),
-                createResponse.getOrderTotal(),
+                createResponse.getShippingInfo(),
+                createResponse.getBillingInfo(),
+                createResponse.getTotal(),
                 updatedStatus,
                 Arrays.asList(
                         new OrderItem(
@@ -273,7 +357,8 @@ public class OrderServiceIntegrationTest {
         OrderUpdateRequest updateRequest = new OrderUpdateRequest(
                 invalidOrderId,
                 userId,
-                mockNeat.addresses().valStr(),
+                new AddressInfo(),
+                new AddressInfo(),
                 mockNeat.doubles().val(),
                 updatedStatus,
                 Arrays.asList(
@@ -306,7 +391,27 @@ public class OrderServiceIntegrationTest {
         OrderCreateRequest createRequest = new OrderCreateRequest(
                 userId,
                 UUID.randomUUID().toString(),
-                mockNeat.addresses().valStr(),
+                new AddressInfo(
+                        mockNeat.names().first().valStr(),
+                        mockNeat.names().last().valStr(),
+                        mockNeat.addresses().line1().valStr(),
+                        mockNeat.addresses().line2().valStr(),
+                        mockNeat.cities().us().valStr(),
+                        mockNeat.usStates().valStr(),
+                        mockNeat.ints().valStr()
+                ),
+                new AddressInfo(
+                        mockNeat.names().first().valStr(),
+                        mockNeat.names().last().valStr(),
+                        mockNeat.addresses().line1().valStr(),
+                        mockNeat.addresses().line2().valStr(),
+                        mockNeat.cities().us().valStr(),
+                        mockNeat.usStates().valStr(),
+                        mockNeat.ints().valStr()
+                ),
+                mockNeat.doubles().val(),
+                mockNeat.doubles().val(),
+                mockNeat.doubles().val(),
                 mockNeat.doubles().val(),
                 Status.PROCESSING.toString(),
                 Arrays.asList(new OrderItem(

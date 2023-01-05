@@ -4,8 +4,8 @@ public interface ProductRequest {
 
     public String getName();
     public void setName(String name);
-    public double getPrice();
-    public void setPrice(double price);
+    public Double getPrice();
+    public void setPrice(Double price);
     public String getUnitMeasurement();
     public void setUnitMeasurement(String unitMeasurement);
     public String getDescription();

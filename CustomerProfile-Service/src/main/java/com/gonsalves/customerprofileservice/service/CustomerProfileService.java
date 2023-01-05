@@ -4,11 +4,13 @@ import com.gonsalves.customerprofileservice.config.CacheStore;
 import com.gonsalves.customerprofileservice.controller.model.CustomerProfileCreateRequest;
 import com.gonsalves.customerprofileservice.controller.model.CustomerProfileRequest;
 import com.gonsalves.customerprofileservice.controller.model.CustomerProfileUpdateRequest;
+import com.gonsalves.customerprofileservice.repository.entity.AddressInfoEntity;
 import com.gonsalves.customerprofileservice.repository.entity.CustomerProfileEntity;
 import com.gonsalves.customerprofileservice.exception.CustomerProfileAlreadyExistsException;
 import com.gonsalves.customerprofileservice.exception.CustomerProfileNotFoundException;
 import com.gonsalves.customerprofileservice.repository.CustomerProfileRepository;
 import com.gonsalves.customerprofileservice.repository.entity.Status;
+import com.gonsalves.customerprofileservice.service.model.AddressInfo;
 import com.gonsalves.customerprofileservice.service.model.CustomerProfile;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +90,7 @@ public class CustomerProfileService {
                 .email(profile.getEmail())
                 .firstName(profile.getFirstName())
                 .lastName(profile.getLastName())
-                .shippingAddress(profile.getShippingAddress())
+                .shippingInfo(convertToEntity(profile.getShippingInfo()))
                 .build();
         entity.setStatus(Status.INACTIVE);
         customerProfileRepository.updateCustomerProfile(entity);
@@ -101,7 +103,7 @@ public class CustomerProfileService {
                 entity.getEmail(),
                 entity.getFirstName(),
                 entity.getLastName(),
-                entity.getShippingAddress(),
+                convertFromEntity(entity.getShippingInfo()),
                 entity.getStatus().toString()
         );
     }
@@ -111,7 +113,31 @@ public class CustomerProfileService {
                 .email(profile.getEmail())
                 .firstName(profile.getFirstName())
                 .lastName(profile.getLastName())
-                .shippingAddress(profile.getShippingAddress())
+                .shippingInfo(convertToEntity(profile.getShippingInfo()))
                 .build();
+    }
+
+    private AddressInfoEntity convertToEntity(AddressInfo addressInfo) {
+        return new AddressInfoEntity(
+                addressInfo.getFirstName(),
+                addressInfo.getLastName(),
+                addressInfo.getAddressFirstLine(),
+                addressInfo.getAddressSecondLine(),
+                addressInfo.getCity(),
+                addressInfo.getState(),
+                addressInfo.getZipCode()
+        );
+    }
+
+    private AddressInfo convertFromEntity(AddressInfoEntity entity) {
+        return new AddressInfo(
+                entity.getFirstName(),
+                entity.getLastName(),
+                entity.getAddressFirstLine(),
+                entity.getAddressSecondLine(),
+                entity.getCity(),
+                entity.getState(),
+                entity.getZipCode()
+        );
     }
 }

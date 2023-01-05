@@ -21,8 +21,8 @@ public class CustomerProfileEntity {
     private String firstName;
     @DynamoDBAttribute(attributeName = "last_name")
     private String lastName;
-    @DynamoDBAttribute(attributeName = "shipping_address")
-    private String shippingAddress;
+    @DynamoDBAttribute(attributeName = "shipping_info")
+    private AddressInfoEntity shippingInfo;
     @DynamoDBTypeConvertedEnum
     @DynamoDBAttribute(attributeName = "status")
     private Status status;

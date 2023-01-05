@@ -28,13 +28,13 @@ public class OrderEntity {
     @DynamoDBAttribute(attributeName = "billing_info")
     private AddressInfoEntity billingInfo;
     @DynamoDBAttribute(attributeName = "subtotal")
-    private double subtotal;
+    private Double subtotal;
     @DynamoDBAttribute(attributeName = "tax")
-    private double tax;
+    private Double tax;
     @DynamoDBAttribute(attributeName = "shipping_cost")
-    private double shippingCost;
+    private Double shippingCost;
     @DynamoDBAttribute(attributeName = "total")
-    private double total;
+    private Double total;
     @DynamoDBTypeConvertedEnum
     @DynamoDBAttribute(attributeName = "status")
     private Status status;

@@ -18,9 +18,9 @@ public class OrderItemEntity {
     @DynamoDBAttribute(attributeName = "image_url")
     private String imageUrl;
     @DynamoDBAttribute(attributeName = "quantity")
-    private int quantity;
+    private Integer quantity;
     @DynamoDBAttribute(attributeName = "unit_price")
-    private double unitPrice;
+    private Double unitPrice;
 
 
 }

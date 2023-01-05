@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 public class ProductCreateRequest implements ProductRequest{
 
     private String name;
-    private double price;
+    private Double price;
     private String unitMeasurement;
     private String description;
     private String category;

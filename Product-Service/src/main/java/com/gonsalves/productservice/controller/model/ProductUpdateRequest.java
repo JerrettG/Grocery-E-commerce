@@ -12,11 +12,11 @@ public class ProductUpdateRequest implements ProductRequest{
 
     private String productId;
     private String name;
-    private double price;
+    private Double price;
     private String unitMeasurement;
     private String description;
     private String category;
     private String imageUrl;
-    private double rating;
+    private Double rating;
 
 }

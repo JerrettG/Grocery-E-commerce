@@ -19,10 +19,10 @@ public class OrderCreateRequest{
     private String paymentIntentId;
     private AddressInfo shippingInfo;
     private AddressInfo billingInfo;
-    private double subtotal;
-    private double tax;
-    private double shippingCost;
-    private double total;
+    private Double subtotal;
+    private Double tax;
+    private Double shippingCost;
+    private Double total;
     private String status;
     private List<OrderItem> orderItems;
 
@@ -58,35 +58,35 @@ public class OrderCreateRequest{
         this.billingInfo = billingInfo;
     }
 
-    public double getSubtotal() {
+    public Double getSubtotal() {
         return subtotal;
     }
 
-    public void setSubtotal(double subtotal) {
+    public void setSubtotal(Double subtotal) {
         this.subtotal = subtotal;
     }
 
-    public double getTax() {
+    public Double getTax() {
         return tax;
     }
 
-    public void setTax(double tax) {
+    public void setTax(Double tax) {
         this.tax = tax;
     }
 
-    public double getShippingCost() {
+    public Double getShippingCost() {
         return shippingCost;
     }
 
-    public void setShippingCost(double shippingCost) {
+    public void setShippingCost(Double shippingCost) {
         this.shippingCost = shippingCost;
     }
 
-    public double getTotal() {
+    public Double getTotal() {
         return total;
     }
 
-    public void setTotal(double total) {
+    public void setTotal(Double total) {
         this.total = total;
     }
 

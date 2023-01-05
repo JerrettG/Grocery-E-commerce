@@ -11,7 +11,7 @@ public class OrderItem {
 
     private String itemName;
     private String imageUrl;
-    private int quantity;
-    private double unitPrice;
+    private Integer quantity;
+    private Double unitPrice;
 
 }

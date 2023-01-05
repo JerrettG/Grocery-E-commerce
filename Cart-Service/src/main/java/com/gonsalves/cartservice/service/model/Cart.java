@@ -7,7 +7,7 @@ import java.util.List;
 
 public class Cart {
     private List<CartItemEntity> cartItemEntities;
-    private double subtotal;
+    private Double subtotal;
 
     public Cart() {
         this.cartItemEntities = new ArrayList<>();
@@ -21,12 +21,12 @@ public class Cart {
         this.cartItemEntities = cartItemEntities;
     }
     public void calculateTotalCost() {
-        double total = 0;
+        Double total = 0.0;
         for (CartItemEntity cartItemEntity : this.cartItemEntities)
             total += cartItemEntity.getProductPrice() * cartItemEntity.getQuantity();
         this.subtotal = total;
     }
-    public double getSubtotal() {return this.subtotal;
+    public Double getSubtotal() {return this.subtotal;
     }
-    public void setSubtotal(double subtotal) {this.subtotal = subtotal;}
+    public void setSubtotal(Double subtotal) {this.subtotal = subtotal;}
 }
