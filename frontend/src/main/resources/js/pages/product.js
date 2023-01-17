@@ -54,7 +54,7 @@ class ProductPage extends BaseClass {
                     </div>
                     `;
                 setTimeout(() => {addButton.innerHTML = originalInnerHtml; }, 2000);
-                this.showMessage(`Item added to cart successfully`);
+                // this.showMessage(`Item added to cart successfully`);
             } else {
                 this.errorHandler("Error doing adding to cart. Try again...");
             }

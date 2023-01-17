@@ -6,11 +6,13 @@
     "build": "webpack --mode production"
   },
   "dependencies": {
-    "@popperjs/core": "^2.11.6",
     "@babel/core": "^7.20.2",
     "@babel/preset-env": "^7.20.2",
+    "@popperjs/core": "^2.11.6",
     "babel-loader": "^9.1.0",
     "bootstrap": "^5.2.2",
+    "proxy-production-webpack-plugin": "^4.0.5",
+    "stripe": "^11.6.0",
     "terser-webpack-plugin": "^5.3.6"
   },
   "type": "commonjs",

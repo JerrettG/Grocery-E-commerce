@@ -9,7 +9,7 @@ export default class CheckoutPage extends BaseClass {
     constructor() {
         super();
         this.bindClassMethods([
-            'initialize','getCookie',
+            'initialize','getCookie', 'setCookie',
             'handleOrderSubmit', 'showMessage', 'setLoading', 'handleShippingSubmit',
             'handleBillingSubmit', 'changeShipping', 'changeBilling', 'toggleSameAsShipping'], this);
         this.dataStore = new DataStore();
@@ -19,7 +19,6 @@ export default class CheckoutPage extends BaseClass {
         this.cartServiceClient = new CartServiceClient();
         this.orderServiceClient = new OrderServiceClient();
         this.profileServiceClient = new CustomerProfileServiceClient();
-        this.SHIPPING_FLAT_RATE = 7.99;
         // This is your test publishable API key.
         this.stripe = Stripe(stripePublicKey);
         // The items the customer wants to buy
@@ -38,96 +37,137 @@ export default class CheckoutPage extends BaseClass {
         document.querySelector('.menu-icon').addEventListener('click', this.openNav);
         document.querySelector('.closebtn').addEventListener('click', this.closeNav);
 
-        document.querySelectorAll('.checkout-form input')
-            .forEach(input => {
-                input.addEventListener("invalid", function () {input.classList.add("invalidInput");});
-                input.addEventListener("input", function () {input.classList.remove("invalidInput")});
-            });
-        document.getElementById("same-as-shipping").addEventListener("change", this.toggleSameAsShipping);
-        document.getElementById("shipping-form").addEventListener("submit", this.handleShippingSubmit);
-        document.getElementById("billing-form").addEventListener("submit", this.handleBillingSubmit);
         document
             .querySelector("#payment-form")
             .addEventListener("submit", this.handleOrderSubmit);
         document.getElementById('order-summary-item-count').innerHTML = `Items (${numItems})`;
-
-        this.dataStore.addChangeListener(this.initialize);
+        this.deleteCookie("paymentIntentId");
+        this.initialize();
     }
 
-     getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie != '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
+
+
 // Fetches a payment intent and captures the client secret
     async initialize() {
 
-        const shippingInfo = this.dataStore.get("shippingInfo");
-        let billingInfo = this.dataStore.get("billingInfo");
-        const sameAsShipping = this.dataStore.get('sameAsShipping');
-        if (sameAsShipping) {
-            billingInfo = shippingInfo;
+
+        let profile = await this.profileServiceClient.getCustomerProfileByUserId(userId);
+        if (profile) {
+            this.dataStore.set("profile", profile);
         }
-        if (shippingInfo && billingInfo) {
 
-            let status = "AWAITING_PAYMENT";
-            let subtotal = this.subtotal;
-            let orderItems = [];
-            for (let item of this.items) {
-                orderItems.push(
-                    {
-                        itemName: item.productName,
-                        imageUrl: item.productImageUrl,
-                        quantity: item.quantity,
-                        unitPrice: item.productPrice
-                    }
-                )
-            }
-            let taxRate = 0.0775;
-            let tax = Number((subtotal * taxRate).toFixed(2));
-            let shippingCost = Number(this.SHIPPING_FLAT_RATE.toFixed(2));
-            let total = subtotal + tax + shippingCost;
+        let name = `${profile.firstName} ${profile.lastName}`;
+        let defaultAddressLine1 = profile.shippingInfo.addressFirstLine;
+        let defaultAddressLine2 = profile.shippingInfo.addressSecondLine;
+        let defaultAddressCity = profile.shippingInfo.city;
+        let defaultAddressState = profile.shippingInfo.state;
+        let defaultAddressZipCode = profile.shippingInfo.zipCode;
 
+
+        let subtotal = this.subtotal;
+        let orderItems = [];
+        for (let item of this.items) {
+            orderItems.push(
+                {
+                    itemName: item.productName,
+                    imageUrl: item.productImageUrl,
+                    quantity: item.quantity,
+                    unitPrice: item.productPrice
+                }
+            )
+        }
+
+        let taxRate = 0.0775;
+        let tax = Number((subtotal * taxRate).toFixed(2));
+        let shippingCost = 7.99;
+        let total = subtotal + tax + shippingCost;
+
+        this.dataStore.set("subtotal", subtotal);
+        this.dataStore.set("shippingCost", shippingCost);
+        this.dataStore.set("tax", tax);
+        this.dataStore.set("orderItems", orderItems);
+        this.dataStore.set("total", total);
+
+
+        let paymentIntentId = this.getCookie('paymentIntentId');
+        let clientSecret = this.getCookie('clientSecret');
+
+        if (!clientSecret || !paymentIntentId) {
             const response = await fetch("/payment/create-payment-intent",
                 {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({
-                            shippingInfo: shippingInfo,
                             userId: userId,
+                        //TODO make the name of the user come from shipping if profile fields are null
+                            name: name,
+                            email: profile.email,
                             total: total
                         }
                     ),
                 });
             const jsonResponse = await response.json();
-            const {clientSecret} = jsonResponse;
-            const {paymentIntentId} = jsonResponse;
+            clientSecret = jsonResponse.clientSecret;
+            paymentIntentId = jsonResponse.paymentIntentId;
 
-            await this.orderServiceClient.createOrder(userId, paymentIntentId, orderItems, subtotal, shippingCost, total, status, shippingInfo, billingInfo, this.errorHandler);
-
-            const appearance = {
-                theme: 'stripe',
-            };
-            this.elements = this.stripe.elements({appearance, clientSecret});
-
-            const paymentElement = this.elements.create("payment");
-            paymentElement.mount("#payment-element");
-
-            document.getElementById("checkout-subtotal").innerHTML = this.formatCurrency(subtotal);
-            document.getElementById("checkout-shipping").innerHTML = this.formatCurrency(shippingCost);
-            document.getElementById("checkout-tax").innerHTML = this.formatCurrency(tax);
-            document.getElementById("checkout-total").innerHTML = this.formatCurrency(total);
+            this.setCookie('clientSecret', clientSecret);
+            this.setCookie('paymentIntentId', paymentIntentId);
         }
+
+        //TODO make paymentIntent update with cart total every time the user goes to checkout
+        // const paymentIntent = await this.stripe.updatePaymentIntent(paymentIntentId, {amount: total*100})
+
+
+
+        const appearance = {
+            theme: 'stripe',
+        };
+
+        this.elements = this.stripe.elements({appearance, clientSecret});
+
+        const addressElement = this.elements.create("address", {
+            mode: "shipping",
+            defaultValues: {
+                name: name,
+                address: {
+                    line1: defaultAddressLine1,
+                    line2: defaultAddressLine2,
+                    city: defaultAddressCity,
+                    state: defaultAddressState,
+                    postal_code: defaultAddressZipCode,
+                    country: 'US',
+                }
+            },
+            allowedCountries: ['US'],
+            blockPoBox: true,
+            fields: {
+                phone: 'never',
+            },
+        });
+        addressElement.mount("#address-element");
+        const paymentElement = this.elements.create("payment");
+        document.querySelector('.payment-form-container .checkout-input').style.display = 'block';
+        paymentElement.mount("#payment-element");
+
+        addressElement.on('change', (event) => {
+            let name = event.value.name.split(' ');
+            let shippingInfo = {
+                firstName: name[0],
+                lastName: name[1],
+                addressFirstLine: event.value.address.line1,
+                addressSecondLine: event.value.address.line2,
+                city: event.value.address.city,
+                state: event.value.address.state,
+                zipCode: event.value.address.postal_code,
+                country: event.value.address.country
+            }
+            this.dataStore.set("shippingInfo", shippingInfo);
+        });
+
+        document.getElementById("checkout-subtotal").innerHTML = this.formatCurrency(subtotal);
+        document.getElementById("checkout-shipping").innerHTML = this.formatCurrency(shippingCost);
+        document.getElementById("checkout-tax").innerHTML = this.formatCurrency(tax);
+        document.getElementById("checkout-total").innerHTML = this.formatCurrency(total);
     }
 
 
@@ -137,11 +177,30 @@ export default class CheckoutPage extends BaseClass {
 
         let elements = this.elements;
 
+        let status = "AWAITING_PAYMENT";
+        let paymentIntentId = this.getCookie("paymentIntentId");
+        let orderItems = this.dataStore.get("orderItems");
+        let subtotal = this.dataStore.get("subtotal");
+        let shippingCost = this.dataStore.get("shippingCost");
+        let tax = this.dataStore.get("tax");
+        let total = this.dataStore.get("total");
+        let shippingInfo = this.dataStore.get("shippingInfo");
+
+        // TODO find a way to get billingInfo from stripe
+        let billingInfo = shippingInfo;
+
+        if (document.getElementById('saveAsDefault').checked) {
+            this.profileServiceClient.updateCustomerProfile(userId, null, null, null, shippingInfo, this.errorHandler);
+        }
+
+        await this.orderServiceClient.createOrder(userId, paymentIntentId, orderItems, subtotal, shippingCost, tax, total, status, shippingInfo, billingInfo, this.errorHandler);
+
         const { error } = await this.stripe.confirmPayment({
             elements,
             confirmParams: {
                 // Make sure to change this to your payment completion page
                 return_url: "http://localhost:8084/success",
+                receipt_email: document.getElementById("email-input").value,
             },
         });
 
@@ -155,7 +214,7 @@ export default class CheckoutPage extends BaseClass {
         } else {
             this.showMessage("An unexpected error occurred.");
         }
-        // await this.orderServiceClient.createOrder(userId, )
+
         this.setLoading(false);
     }
     async changeShipping(event) {
@@ -210,6 +269,7 @@ export default class CheckoutPage extends BaseClass {
         let shippingForm = document.getElementById("shipping-form");
         let shippingFormData = new FormData(shippingForm);
 
+
         let shippingInfo = {
             firstName: shippingFormData.get('firstName'),
             lastName: shippingFormData.get('lastName'),
@@ -219,11 +279,6 @@ export default class CheckoutPage extends BaseClass {
             state: shippingFormData.get('state'),
             zipCode: shippingFormData.get('zipCode')
         }
-
-        if (shippingFormData.get("saveDefault")) {
-            this.profileServiceClient.updateCustomerProfile(userId, null, null, null, shippingInfo, this.errorHandler);
-        }
-
         this.dataStore.set("shippingInfo", shippingInfo);
         document.getElementById('shipping-info-header').classList.add('inline');
         shippingForm.classList.add('hidden');
@@ -231,7 +286,7 @@ export default class CheckoutPage extends BaseClass {
         changeButton.classList.remove('hidden');
         changeButton.addEventListener('click', this.changeShipping);
 
-        // TODO if save as default save shipping address to preferred for profile
+
     }
 
 // ------- UI helpers -------

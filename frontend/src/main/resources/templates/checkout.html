@@ -18,98 +18,25 @@
         <div class="checkout-form-container checkout-form">
             <div class="checkout-form-heading">
                 <h2 id="shipping-info-header">Shipping info</h2>
-                <span id="change-shipping-info" class="change-checkout-form hidden">Change</span>
             </div>
-            <form id="shipping-form">
-                <div class="first-last-name-container">
-                    <div class="name-container">
-                        <p>First name</p>
-                        <input type="text" name="firstName" required>
-                    </div>
-                    <div class="name-container">
-                        <p>Last name</p>
-                        <input type="text" name="lastName" required>
-                    </div>
+            <form id="address-form">
+                <div id="address-element">
+                    <!-- Elements will create form elements here -->
                 </div>
-                <p>Address</p>
-                <div class="address-container">
-                    <input type="text" name="addressFirstLine" required placeholder="Street address or P.O. Box">
-                    <input type="text" name="addressSecondLine" placeholder="Apt, suite, unit, building, floor, etc.">
+                <div id="saveAsDefault-container">
+                    <label>Save as default
+                    <input type="checkbox" name="saveAsDefault" id="saveAsDefault">
+                    </label>
                 </div>
-                <div class="city-state-zip-container">
-                    <div class="city-container">
-                        <p>City</p>
-                        <input type="text" name="city" required>
-                    </div>
-                    <div class="state-container">
-                        <p>State</p>
-                        <select name="state" required>
-                            <th:block th:each="state : ${states}">
-                                <option th:value="${state}" th:text="${state}"></option>
-                            </th:block>
-                        </select>
-                    </div>
-                    <div class="zip-container">
-                        <p>Zip code</p>
-                        <input type="text" name="zipCode" required>
-                    </div>
-                </div>
-                <div class="save-default">
-                    <label for="save-default-shipping">Save as default</label>
-                    <input type="checkbox" name="saveDefault" id="save-default-shipping" style="float: left;">
-                </div>
-                <button class="checkout-buttons save-info" id="shipping-form-save">Save info</button>
-            </form>
-        </div>
-        <div class="checkout-form-container checkout-form">
-            <div class="checkout-form-heading">
-                <h2 id="billing-info-header">Billing info</h2>
-                <span id="change-billing-info" class="change-checkout-form hidden">Change</span>
-            </div>
-            <form id="billing-form">
-                <input type="checkbox" name="sameAsShipping" id="same-as-shipping">
-                <label for="same-as-shipping">Same as shipping</label>
-                <fieldset id="billing-collapsible" class="billing-collapsible">
-                    <div class="first-last-name-container">
-                        <div class="name-container">
-                            <p>First name</p>
-                            <input type="text" name="firstName" required>
-                        </div>
-                        <div class="name-container">
-                            <p>Last name</p>
-                            <input type="text" name="lastName" required>
-                        </div>
-                    </div>
-                    <p>Address</p>
-                    <div class="address-container">
-                        <input type="text" name="addressFirstLine" required placeholder="Street address or P.O. Box">
-                        <input type="text" name="addressSecondLine" placeholder="Apt, suite, unit, building, floor, etc.">
-                    </div>
-                    <div class="city-state-zip-container">
-                        <div class="city-container">
-                            <p>City</p>
-                            <input type="text" name="city" required>
-                        </div>
-                        <div class="state-container">
-                            <p>State</p>
-                            <select name="state" required>
-                                <th:block th:each="state : ${states}">
-                                    <option th:value="${state}" th:text="${state}"></option>
-                                </th:block>
-                            </select>
-                        </div>
-                        <div class="zip-container">
-                            <p>Zip code</p>
-                            <input type="text" name="zipCode" required>
-                        </div>
-                    </div>
-                </fieldset>
-                <button class="checkout-buttons save-info" id="billing-form-save">Save info</button>
             </form>
         </div>
         <div class="checkout-form-container checkout-form">
             <h2>Payment Details</h2>
             <form id="payment-form">
+                <div class="checkout-input" style="display: none;">
+                    <p for="email" class="p-FieldLabel Label Label--empty">Email</p>
+                    <input type="text" id="email-input" placeholder="Enter email address" class="p-Input-input Input Input--empty"/>
+                </div>
                 <div id="payment-element">
                     <!--Stripe.js injects the Payment Element-->
                     <div class="loading-spinner" style="width: 15%; position:relative; left: 40%;"></div>

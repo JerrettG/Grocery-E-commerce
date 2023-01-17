@@ -53,7 +53,7 @@ export default class OrderServiceClient extends BaseClass {
         }
     }
 
-    async createOrder(userId, paymentIntentId, orderItems, subtotal, shippingCost, total, status, shippingInfo, billingInfo, errorCallback) {
+    async createOrder(userId, paymentIntentId, orderItems, subtotal, shippingCost, tax, total, status, shippingInfo, billingInfo, errorCallback) {
         try {
             const response = await this.client.post(`/api/v1/orderService/order`,
                     {
@@ -62,6 +62,7 @@ export default class OrderServiceClient extends BaseClass {
                         orderItems: orderItems,
                         subtotal: subtotal,
                         shippingCost: shippingCost,
+                        tax: tax,
                         total: total,
                         status: status,
                         shippingInfo: shippingInfo,

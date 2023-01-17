@@ -3,7 +3,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const WarningsToErrorsPlugin = require('warnings-to-errors-webpack-plugin');
-const {auto} = require("@popperjs/core");
+
 
 module.exports = (env, argv) => ({
   entry: {

@@ -18,9 +18,8 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class WebSecurityConfiguration {
     @Autowired
     private LogoutHandler logoutHandler;
-    private static final String[] WHITE_LIST_URLS = {"/", "/home","/category", "/oauth2/authorization/auth0", "/stripe/events"};
-    private static final String[] CSRF_WHITE_LIST_URLS = {"/stripe/events", "/static/api/v2/spans",  "/services/**","/services/**/**/**", "/payment/create-payment-intent", "/static/api/**/cartService/**",
-            "/static/api/**/customerProfileService/**", "/static/api/**/orderService/**", "/static/api/v1/productService/product/all"};
+    private static final String[] WHITE_LIST_URLS = {"/", "/home","/category", "/product/**","/oauth2/authorization/auth0", "/stripe/events"};
+    private static final String[] CSRF_WHITE_LIST_URLS = {"/stripe/events", "/api/v2/spans", "/payment/create-payment-intent"};
 
     @Bean
     public PasswordEncoder passwordEncoder() {
