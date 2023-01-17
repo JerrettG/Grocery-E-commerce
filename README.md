@@ -24,6 +24,11 @@ Grocery E-commerce website built using Spring and made deployable to a Kubernete
 - [ ] Multiple saved addresses for shipping and billing
 - [ ] Creation of another project that uses existing Order Service API to create an order fulfillment service that updates status and contents of user orders
 
+# Current Development Demo
+
+https://user-images.githubusercontent.com/100180211/212825299-7a764277-3464-4f33-996d-0239cbd9c704.mov
+
+## Design
 
 ![Architecture diagram](design_diagrams/architecture_diagram.png)
 
