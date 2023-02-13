@@ -23,12 +23,10 @@ public class CartRepository {
         this.mapper = mapper;
     }
 
-    //CREATE
     public void create(CartItemEntity cartItemEntity) {
         mapper.save(cartItemEntity);
     }
 
-    //READ
     public List<CartItemEntity> loadAllCartItems(String userId) {
         CartItemEntity cartItemEntity = new CartItemEntity();
         cartItemEntity.setUserId(userId);
@@ -53,7 +51,6 @@ public class CartRepository {
         return mapper.query(CartItemEntity.class, queryExpression);
     }
 
-    //UPDATE
     public void updateCartItem(CartItemEntity cartItemEntity) {
         mapper.save(cartItemEntity,
                 new DynamoDBSaveExpression()
@@ -71,7 +68,6 @@ public class CartRepository {
         );
     }
 
-    //DELETE
     public void removeItem(CartItemEntity cartItemEntity) {mapper.delete(cartItemEntity);
     }
 

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Repository
 public class OrderRepository {
@@ -33,11 +34,11 @@ public class OrderRepository {
         return mapper.query(OrderEntity.class, queryExpression);
     }
 
-    public OrderEntity getOrderByOrderId(String userId, String orderId) {
-        return mapper.load(OrderEntity.class, userId, orderId);
+    public Optional<OrderEntity> getOrderByOrderId(String userId, String orderId) {
+        return Optional.ofNullable(mapper.load(OrderEntity.class, userId, orderId));
     }
 
-    public List<OrderEntity> getOrderByPaymentIntentId(String userId, String paymentIntentId) {
+    public Optional<OrderEntity> getOrderByPaymentIntentId(String userId, String paymentIntentId) {
         Map<String, AttributeValue> expected = new HashMap<String, AttributeValue>();
         expected.put(":user_id", new AttributeValue(userId));
         expected.put(":payment_intent_id", new AttributeValue(paymentIntentId));
@@ -48,7 +49,7 @@ public class OrderRepository {
                 .withExpressionAttributeValues(expected)
                 .withConsistentRead(false);
 
-        return mapper.query(OrderEntity.class, queryExpression);
+        return mapper.query(OrderEntity.class, queryExpression).stream().findFirst();
     }
 
     public void createOrder(OrderEntity orderEntity) {

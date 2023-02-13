@@ -78,7 +78,7 @@ public class CustomerProfileServiceIntegrationTest {
         String email = mockNeat.emails().valStr();
         String firstName = mockNeat.names().first().valStr();
         String lastName = mockNeat.names().last().valStr();
-        String shippingAddress = mockNeat.addresses().valStr();
+
 
         CustomerProfileCreateRequest createRequest = new CustomerProfileCreateRequest(
                 userId,
@@ -283,7 +283,7 @@ public class CustomerProfileServiceIntegrationTest {
                 lastName,
                 shippingAddress
         );
-        
+
         utility.customProfileServiceClient.createCustomerProfile(createRequest);
 
         //WHEN

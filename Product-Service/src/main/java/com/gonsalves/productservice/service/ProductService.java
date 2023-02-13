@@ -1,7 +1,8 @@
 package com.gonsalves.productservice.service;
 
 import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
-import com.gonsalves.productservice.config.CacheStore;
+import com.gonsalves.productservice.caching.CacheStore;
+import com.gonsalves.productservice.caching.DistributedCache;
 import com.gonsalves.productservice.repository.entity.Category;
 
 import com.gonsalves.productservice.exception.ProductAlreadyExistsException;
@@ -9,66 +10,74 @@ import com.gonsalves.productservice.exception.ProductNotFoundException;
 import com.gonsalves.productservice.repository.ProductRepository;
 import com.gonsalves.productservice.repository.entity.ProductEntity;
 import com.gonsalves.productservice.service.model.Product;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class ProductService {
-
+private final String PRODUCT_LIST_KEY = "Product-list::%s";
     private final ProductRepository productRepository;
     private final CacheStore cache;
 
+    private final DistributedCache distributedCache;
+
+    private final Gson gson;
     @Autowired
-    public ProductService(ProductRepository productRepository, CacheStore cache) {
+    public ProductService(ProductRepository productRepository, CacheStore cache, DistributedCache distributedCache) {
         this.productRepository = productRepository;
         this.cache = cache;
+        this.distributedCache = distributedCache;
+        gson = new GsonBuilder().create();
     }
 
     public Product loadProductWithProductName(String name) {
-        Product cachedProduct = cache.getByProductName(name);
+        Optional<Product> cachedProduct = cache.getByProductName(name);
 
-        if (cachedProduct != null)
-            return cachedProduct;
+        if (cachedProduct.isPresent())
+            return cachedProduct.get();
 
-        List<ProductEntity> results = productRepository.loadProductWithProductName(name);
+        ProductEntity entity = productRepository.loadProductWithProductName(name)
+                .orElseThrow(() -> new ProductNotFoundException("Product with specified name does not exist."));
 
-        if (results.size() > 0) {
-            Product productFromDatabase = convertToProduct(results.get(0));
-            cache.addByProductName(productFromDatabase.getName(), productFromDatabase);
-            return productFromDatabase;
-        }
-        else {
-            log.error("Product with specified name does not exist.");
-            throw new ProductNotFoundException("Product with specified name does not exist.");
-        }
+        Product productFromDatabase = convertFromEntity(entity);
+        cache.addByProductName(productFromDatabase.getName(), productFromDatabase);
+        return productFromDatabase;
     }
 
     public List<Product> loadAllProducts() {
-        List<Product> cachedProducts = cache.getByCategory("ALL");
-        if (cachedProducts != null)
-            return cachedProducts;
+        String key = String.format(PRODUCT_LIST_KEY, "ALL");
+//        Optional<List<Product>> cachedProducts = cache.getByCategory("ALL");
+        Optional<String> cachedProducts = distributedCache.getValue(key);
+        if (cachedProducts.isPresent())
+            return fromJson(cachedProducts.get());
 
-        List<Product> productsFromDatabase = new ArrayList<>();
-        productRepository.loadAll()
-                .forEach(entity -> productsFromDatabase.add(convertToProduct(entity)));
-        cache.addByCategory("ALL", productsFromDatabase);
+        List<Product> productsFromDatabase = productRepository.loadAll().stream()
+                .map(this::convertFromEntity)
+                .collect(Collectors.toList());
+//        cache.addByCategory("ALL", productsFromDatabase);
+        addToDistributedCache(key, productsFromDatabase);
         return productsFromDatabase;
     }
 
     public List<Product> loadAllProductsInCategory(String category) {
-        List<Product> cachedProducts = cache.getByCategory(category);
-        if (cachedProducts != null)
-            return cachedProducts;
+        Optional<List<Product>> cachedProducts = cache.getByCategory(category);
+        if (cachedProducts.isPresent())
+            return cachedProducts.get();
 
-        List<Product> productsFromDatabase = new ArrayList<>();
-        productRepository.loadAllProductsInCategory(Category.valueOf(category)).
-                forEach(entity -> productsFromDatabase.add(convertToProduct(entity)));
+        List<Product> productsFromDatabase = productRepository.loadAllProductsInCategory(Category.valueOf(category)).stream()
+                        .map(this::convertFromEntity)
+                        .collect(Collectors.toList());
         cache.addByCategory(category, productsFromDatabase);
         return productsFromDatabase;
     }
@@ -114,7 +123,7 @@ public class ProductService {
             log.info(String.format("Resource with name: %s has been successfully deleted.", product.getName()));
     }
 
-    private Product convertToProduct(ProductEntity productEntity) {
+    private Product convertFromEntity(ProductEntity productEntity) {
         return Product.builder()
                 .productId(productEntity.getProductId())
                 .name(productEntity.getName())
@@ -137,5 +146,14 @@ public class ProductService {
                 .imageUrl(product.getImageUrl())
                 .rating(product.getRating())
                 .build();
+    }
+
+
+    private void addToDistributedCache(String key, List<Product> products) {
+        distributedCache.setValue(key, 60*60, gson.toJson(products));
+    }
+
+    private List<Product> fromJson(String json) {
+        return gson.fromJson(json, new TypeToken<ArrayList<Product>>() { }.getType());
     }
 }

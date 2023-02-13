@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class CustomerProfileRepository {
@@ -20,16 +21,14 @@ public class CustomerProfileRepository {
     public CustomerProfileRepository(DynamoDBMapper mapper) {
         this.mapper = mapper;
     }
-    public CustomerProfileEntity loadCustomerByUserId(String userId) {
+    public Optional<CustomerProfileEntity> loadCustomerByUserId(String userId) {
         CustomerProfileEntity profile = new CustomerProfileEntity();
         profile.setUserId(userId);
         DynamoDBQueryExpression<CustomerProfileEntity> queryExpression = new DynamoDBQueryExpression<CustomerProfileEntity>()
                 .withHashKeyValues(profile)
                 .withConsistentRead(false);
         List<CustomerProfileEntity> results = mapper.query(CustomerProfileEntity.class, queryExpression);
-        if (results.size() > 0)
-            return results.get(0);
-        return null;
+        return results.stream().findFirst();
     }
 
     public void createCustomerProfile(CustomerProfileEntity profile) {

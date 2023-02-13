@@ -10,10 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,11 +25,12 @@ public class CartService {
     }
 
     public void addItemToCart(CartItem cartItem) {
-        CartItemEntity existingItem = loadItem(cartItem.getUserId(), cartItem.getProductId());
-        if (Objects.nonNull(existingItem)) {
-            int updatedQuantity = existingItem.getQuantity() + cartItem.getQuantity();
-            existingItem.setQuantity(updatedQuantity);
-            cartRepository.updateCartItem(existingItem);
+        Optional<CartItemEntity> existingItem = loadItem(cartItem.getUserId(), cartItem.getProductId());
+        if (existingItem.isPresent()) {
+            CartItemEntity entity = existingItem.get();
+            int updatedQuantity = entity.getQuantity() + cartItem.getQuantity();
+            entity.setQuantity(updatedQuantity);
+            cartRepository.updateCartItem(entity);
             log.info(String.format("Attempted to add item with name %s to cart, but item already exists. Quantity updated.", cartItem.getProductName()));
         }
         else {
@@ -54,19 +53,13 @@ public class CartService {
         }
     }
 
-    private CartItemEntity loadItem(String userId, String productId) {
-        List<CartItemEntity> results = cartRepository.loadCartItem(userId, productId);
-        if (results.size() > 0)
-            return results.get(0);
-        return null;
-    }
 
     public List<CartItem> loadAllCartItems(String userId) {
-        List<CartItem> cartItems = new ArrayList<>();
         List<CartItemEntity> results = cartRepository.loadAllCartItems(userId);
-        results.forEach(entity -> cartItems.add(convertToItem(entity)));
 
-        return cartItems;
+        return results.stream()
+                .map(this::convertToItem)
+                .collect(Collectors.toList());
     }
 
 
@@ -79,6 +72,11 @@ public class CartService {
         cartRepository.clearCart(userId);
     }
 
+
+    private Optional<CartItemEntity> loadItem(String userId, String productId) {
+        List<CartItemEntity> results = cartRepository.loadCartItem(userId, productId);
+        return results.stream().findFirst();
+    }
     private CartItem convertToItem(CartItemEntity entity) {
         return CartItem.builder()
                 .id(entity.getId())

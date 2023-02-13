@@ -3,18 +3,13 @@ package com.gonsalves.productservice.repository;
 
 import com.amazonaws.services.dynamodbv2.datamodeling.*;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
 import com.gonsalves.productservice.repository.entity.Category;
 import com.gonsalves.productservice.repository.entity.ProductEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Repository
 public class ProductRepository {
@@ -26,7 +21,7 @@ public class ProductRepository {
         this.mapper = mapper;
     }
 
-    public List<ProductEntity> loadProductWithProductName(String name) {
+    public Optional<ProductEntity> loadProductWithProductName(String name) {
         ProductEntity productEntity = new ProductEntity();
         productEntity.setName(name);
         DynamoDBQueryExpression<ProductEntity> queryExpression = new DynamoDBQueryExpression<ProductEntity>()
@@ -34,12 +29,13 @@ public class ProductRepository {
                 .withHashKeyValues(productEntity)
                 .withConsistentRead(false);
 
-        return mapper.query(ProductEntity.class, queryExpression);
+        return mapper.query(ProductEntity.class, queryExpression).stream().findFirst();
     }
 
     public List<ProductEntity> loadAll() {
         return mapper.scan(ProductEntity.class, new DynamoDBScanExpression());
     }
+
     public List<ProductEntity> loadAllProductsInCategory(Category category) {
         Map<String, AttributeValue> valueMap = new HashMap<>();
         valueMap.put(":category", new AttributeValue().withS(category.toString()));
@@ -53,9 +49,7 @@ public class ProductRepository {
     public void create(ProductEntity productEntity) {
         mapper.save(productEntity);
     }
-    public void delete(ProductEntity productEntity) {
-        mapper.delete(productEntity);
-    }
+
     public void update(ProductEntity productEntity) {
         mapper.save(productEntity,
                 new DynamoDBSaveExpression()
@@ -70,5 +64,8 @@ public class ProductRepository {
                                 )
                         )
         );
+    }
+    public void delete(ProductEntity productEntity) {
+        mapper.delete(productEntity);
     }
 }

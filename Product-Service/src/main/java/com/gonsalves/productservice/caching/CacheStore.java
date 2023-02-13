@@ -1,10 +1,11 @@
-package com.gonsalves.productservice.config;
+package com.gonsalves.productservice.caching;
 
 import com.gonsalves.productservice.service.model.Product;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class CacheStore {
@@ -25,11 +26,11 @@ public class CacheStore {
                 .build();
     }
 
-    public Product getByProductName(String name) {
-        return productNameCache.getIfPresent(name);
+    public Optional<Product> getByProductName(String name) {
+        return Optional.ofNullable(productNameCache.getIfPresent(name));
     }
-    public List<Product> getByCategory(String category) {
-        return productListCache.getIfPresent(category);
+    public Optional<List<Product>> getByCategory(String category) {
+        return Optional.ofNullable(productListCache.getIfPresent(category));
     }
 
     public void evictByProductName(String name) {

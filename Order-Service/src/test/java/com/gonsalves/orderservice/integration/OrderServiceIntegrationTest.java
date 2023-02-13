@@ -64,7 +64,7 @@ public class OrderServiceIntegrationTest {
                 new KeySchemaElement().withAttributeName("user_id").withKeyType(KeyType.HASH),
                 new KeySchemaElement().withAttributeName("payment_intent_id").withKeyType(KeyType.RANGE));
         LocalSecondaryIndex lsi = new LocalSecondaryIndex()
-                .withIndexName(OrderEntity.ORDER_ID_INDEX)
+                .withIndexName(OrderEntity.PAYMENT_INTENT_ID_INDEX)
                 .withKeySchema(lsiKeySchema)
                 .withProjection(new Projection().withProjectionType(ProjectionType.ALL));
         CreateTableRequest request = new CreateTableRequest()
