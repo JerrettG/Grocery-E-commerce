@@ -8,7 +8,9 @@ import com.gonsalves.orderservice.exception.OrderNotFoundException;
 import com.gonsalves.orderservice.repository.OrderRepository;
 import com.gonsalves.orderservice.repository.entity.Status;
 import com.gonsalves.orderservice.service.OrderService;
+import com.gonsalves.orderservice.service.model.AddressInfo;
 import com.gonsalves.orderservice.service.model.Order;
+import net.andreinc.mockneat.MockNeat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -16,16 +18,14 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import javax.swing.text.html.Option;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+
 @SpringBootTest
 public class OrderServiceTest {
 
@@ -48,18 +48,11 @@ public class OrderServiceTest {
 
     @BeforeEach
     public void before() {
-        this.orderId = UUID.randomUUID().toString();
-        this.userId = UUID.randomUUID().toString();
-        this.paymentIntentId = UUID.randomUUID().toString();
-        this.orderItemEntity = new OrderItemEntity(
-                "Beef Tenderloin",
-                "/demo_images/beefTenderloin.jpg",
-                2,
-                4.99
-        );
-        this.order = new Order(orderId, userId, paymentIntentId, "1234 Main St, Sacramento, CA, 92222", 23.47, "PROCESSING", new ArrayList<>(), "July 8, 2022");
-        this.orderEntity = new OrderEntity(orderId,userId,paymentIntentId,"1234 Main St, Sacramento, CA, 92222", 23.47, Status.PROCESSING, new ArrayList<>(), "July 8, 2022");
-        MockitoAnnotations.openMocks(this);
+        this.order = Util.createOrder();
+        this.orderEntity = Util.createEntity(this.order);
+        this.orderId = this.order.getId();
+        this.userId = this.order.getUserId();
+        this.paymentIntentId = this.order.getPaymentIntentId();
     }
 
     @Test
@@ -67,7 +60,7 @@ public class OrderServiceTest {
         List<OrderEntity> orderEntityList = new ArrayList<>(Arrays.asList(orderEntity));
 
         when(orderRepository.getAllOrdersByUserId(userId)).thenReturn(orderEntityList);
-        when(cache.get(userId)).thenReturn(null);
+        when(cache.get(userId)).thenReturn(Optional.empty());
         List<Order> result = orderService.getAllOrdersByUserId(userId);
 
         assertEquals(orderEntityList.size(), result.size(), "Expected method to return a list of all orders, but did not");
@@ -75,9 +68,8 @@ public class OrderServiceTest {
     @Test
     public void getOrderByOrderId() {
 
-        when(orderRepository.getOrderByOrderId(orderId, userId)).thenReturn(orderEntity);
-
-        Order result = orderService.getOrderByOrderId(orderId, userId);
+        when(orderRepository.getOrderByOrderId(userId, orderId)).thenReturn(Optional.ofNullable(orderEntity));
+        Order result = orderService.getOrderByOrderId(userId, orderId);
 
         assertEquals(orderEntity.getId(), result. getId(), "Expected result to have matching orderEntity id, but did not.");
         assertEquals(orderEntity.getPaymentIntentId(), result.getPaymentIntentId(), "Expected result to have matching transaction id, but did not.");
@@ -87,26 +79,24 @@ public class OrderServiceTest {
     @Test
     public void getOrderByOrderId_orderDoesNotExist_throwsOrderNotFoundException() {
 
-        when(orderRepository.getOrderByOrderId(orderId, userId)).thenReturn(null);
+        when(orderRepository.getOrderByOrderId(userId, orderId)).thenReturn(Optional.empty());
 
-        assertThrows(OrderNotFoundException.class, ()->orderService.getOrderByOrderId(orderId, userId), "Expected method to throw OrderNotFoundException when getting non-existent orderEntity, but did not.");
+        assertThrows(OrderNotFoundException.class, ()->orderService.getOrderByOrderId(userId, orderId), "Expected method to throw OrderNotFoundException when getting non-existent orderEntity, but did not.");
     }
 
     @Test
     public void createOrder() {
-        List<OrderEntity> orderEntityList = new ArrayList<>();
 
-        when(orderRepository.getOrderByPaymentIntentId(userId, orderEntity.getPaymentIntentId())).thenReturn(orderEntityList);
+        when(orderRepository.getOrderByPaymentIntentId(userId, orderEntity.getPaymentIntentId())).thenReturn(Optional.empty());
         orderService.createOrder(order);
 
-        verify(orderRepository).createOrder(orderEntity);
+        verify(orderRepository).createOrder(any(OrderEntity.class));
     }
 
     @Test
     public void createOrder_orderAlreadyExists_throwsOrderAlreadyExistsException() {
-        List<OrderEntity> orderEntityList = new ArrayList<>(Arrays.asList(orderEntity));
 
-        when(orderRepository.getOrderByPaymentIntentId(userId, orderEntity.getPaymentIntentId())).thenReturn(orderEntityList);
+        when(orderRepository.getOrderByPaymentIntentId(userId, orderEntity.getPaymentIntentId())).thenReturn(Optional.ofNullable(orderEntity));
 
         assertThrows(OrderAlreadyExistsException.class, ()->orderService.createOrder(order),
                 "Expected creating an orderEntity where an orderEntity already exists for transaction id to throw OrderAlreadyExistsException, but did not.");
@@ -114,16 +104,16 @@ public class OrderServiceTest {
 
     @Test
     public void updateOrder() {
-        when(orderRepository.getOrderByOrderId(orderId, userId)).thenReturn(orderEntity);
+        when(orderRepository.getOrderByOrderId(userId, orderId)).thenReturn(Optional.ofNullable(orderEntity));
 
         orderService.updateOrder(order);
 
-        verify(orderRepository).updateOrder(orderEntity);
+        verify(orderRepository).updateOrder(any(OrderEntity.class));
     }
 
     @Test
     public void updateOrder_orderDoesNotExist_throwsOrderNotFoundException() {
-        when(orderRepository.getOrderByOrderId(orderId, userId)).thenReturn(null);
+        when(orderRepository.getOrderByOrderId(userId, orderId)).thenReturn(Optional.empty());
 
         assertThrows(OrderNotFoundException.class, ()->orderService.updateOrder(order),
                 "Expected to throw OrderNotFoundException when updating an orderEntity that does not exist, but was not.");
@@ -131,7 +121,7 @@ public class OrderServiceTest {
 
     @Test
     public void deleteOrder() {
-        when(orderRepository.getOrderByOrderId(orderId, userId)).thenReturn(orderEntity);
+        when(orderRepository.getOrderByOrderId(userId, orderId)).thenReturn(Optional.ofNullable(orderEntity));
 
         orderService.deleteOrder(order);
 
@@ -140,7 +130,7 @@ public class OrderServiceTest {
 
     @Test
     public void deleteOrder_orderDoesNotExist_throwsOrderNotFoundException() {
-        when(orderRepository.getOrderByOrderId(orderId, userId)).thenReturn(null);
+        when(orderRepository.getOrderByOrderId(userId, orderId)).thenReturn(Optional.empty());
 
         assertThrows(OrderNotFoundException.class, ()->orderService.deleteOrder(order),
                 "Expected to throw OrderNotFoundException when updating an orderEntity that does not exist, but was not.");

@@ -5,6 +5,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class CacheStore {
@@ -19,8 +20,8 @@ public class CacheStore {
                 .build();
     }
 
-    public List<Order> get(String key) {
-        return cache.getIfPresent(key);
+    public Optional<List<Order>> get(String key) {
+        return Optional.ofNullable(cache.getIfPresent(key));
     }
 
     public void evict(String key) {

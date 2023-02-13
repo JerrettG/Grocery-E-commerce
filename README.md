@@ -27,7 +27,10 @@ Grocery E-commerce website built using Spring and made deployable to a Kubernete
 
 # Current Development Demo
 
+
 https://user-images.githubusercontent.com/100180211/212825299-7a764277-3464-4f33-996d-0239cbd9c704.mov
+
+![Current Development Demo](demo_files/development_demo_01-16-2023.mp4)
 
 ## Design
 

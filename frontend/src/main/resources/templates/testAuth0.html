@@ -1,0 +1,440 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Sign In with Auth0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<style>
+
+  :root {
+    --primary-color: #46702c;
+    --base-focus-color: #46702c;
+    --base-form-element-height: var(--spacing-6-5);
+    --base-hover-color: #000000;
+    --base-line-height: 1.1;
+    --border-default-color: #c9cace;
+    --border-radius-outer: 7px;
+    --box-border-color: #c9cace;
+    --box-border-style: solid;
+    --box-border-width: 1px;
+    --button-border-width: 2px;
+    --button-font-color: #ffffff;
+    --button-height: var(--base-form-element-height);
+    --button-border-radius: 4px;
+    --default-font-size: 16px;
+    --error-color: #d03c38;
+    --error-text-color: #ffffff;
+    --font-default-color: #1e212a;
+    --font-default-weight: 400;
+    --font-light-color: #65676e;
+    --hover-transparency-value: 0.1;
+    --icon-default-color: #65676e;
+    --input-background-color: #ffffff;
+    --input-border-color: #c9cace;
+    --input-border-radius: var(--out-input-border-radius);
+    --input-border-width: 2px;
+    --input-height: var(--base-form-element-height);
+    --input-padding: var(--out-input-padding);
+    --input-text-color: #000000;
+    --lg-font-size: 16px;
+    --link-color: #529dcb;
+    --out-input-border-radius: 3px;
+    --out-input-padding: 0 var(--spacing-2);
+    --radio-border-width: 2px;
+    --shadow-component-outer:  0 12px 40px rgb(0 0 0 / 12%);
+    --social-button-border-width: 2px;
+    --spacing: 8px;
+    --spacing-1: var(--spacing);
+    --spacing-2: calc(var(--spacing)*2);
+    --spacing-3: calc(var(--spacing)*3);
+    --spacing-4: calc(var(--spacing)*4);
+    --spacing-5: calc(var(--spacing)*5);
+    --spacing-6: calc(var(--spacing)*6);
+    --spacing-6-5: calc(var(--spacing)*6.5);
+    --success-color: #13a688;
+    --title-font-color: #1e212a;
+    --transparency-focus-color: rgba(70,112,44, 0.15);
+    --transparency-hover-color: rgba(0,0,0, var(--hover-transparency-value));
+    --widget-background-color: #ffffff;
+  }
+
+
+  body, html {
+    height: 100%;
+    font-size: var(--default-font-size);
+    background-color: #dedede;
+  }
+
+  main {
+    display: flex;
+    justify-content: center;
+  }
+
+  .login-container, .signup-container {
+    height: 100%;
+    display:flex;
+    justify-content: center;
+  }
+
+
+
+  .login-box, .signup-box {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 15px;
+    background-color: #fff;
+    box-shadow: var(--shadow-component-outer);
+    border-radius: 5px;
+    border-top: 1px solid #e9e9e9;
+    width: 400px;
+    border: var(--box-border-width) var(--box-border-style) var(--box-border-color);
+  }
+
+  .login-header {
+    padding: var(--spacing-5) var(--spacing-5) var(--spacing-3);
+    line-height: 1.5;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .login-header img {
+    width: 75px;
+  }
+
+  .error-message {
+    display: none;
+    white-space: break-spaces;
+    text-align: center;
+  }
+
+  .form-container {
+    padding: 0 var(--spacing-5) var(--spacing-5);
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .form-group {
+    text-align: left;
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  .btn-primary {
+    background-color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+    padding: 4px var(--spacing-2);
+    margin-top: var(--spacing-3);
+    min-height: var(--button-height);
+    font-family: inherit;
+    font-size: var(--lg-font-size);
+    font-weight: var(--font-default-weight);
+    outline: none;
+    cursor: pointer;
+    color: var(--button-font-color);
+    border: 0;
+    border-radius: var(--button-border-radius);
+    transition: background-color .25s ease-in-out,box-shadow .25s ease-in-out;
+  }
+
+  .btn:hover {
+    background-color: rgb(54,86,34);
+  }
+
+  .input {
+    border-style: solid;
+    -webkit-appearance: none;
+    font-family: inherit;
+    font-size: var(--lg-font-size);
+    height: var(--input-height);
+    line-height: var(--base-line-height);
+    outline: none;
+    padding: var(--input-padding);
+    width: 100%;
+    color: var(--input-text-color);
+    background-color: var(--input-background-color);
+    transition: box-shadow .2s ease-in-out,border-color .2s ease-in-out;
+    border-radius: var(--input-border-radius);
+    border: var(--input-border-width) solid var(--input-border-color);
+  }
+  .input:focus {
+    border-color: var(--base-focus-color);
+    box-shadow:  0 12px 40px rgb(0 0 0 / 12%);;
+  }
+  .input:focus + label{
+    color: var(--base-focus-color);
+  }
+  .links {
+    color: var(--link-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .links:hover {
+    color: var(--base-hover-color);
+  }
+
+  #password-strength-validation {
+    border: solid thin gray;
+    padding: .5em;
+    border-radius: var(--input-border-radius);
+    transition: all 0.3s ease;
+  }
+  #password-strength-validation span {
+    color: red;
+    font-size: small;
+    transition: all ease .2s;
+  }
+</style>
+<body>
+<main>
+  <div class="login-container" style="display: flex;">
+    <div class="login-box">
+      <div class="login-header">
+        <h3>Welcome</h3>
+        <h5>Please Log in</h5>
+      </div>
+      <div class="alert alert-danger error-message"></div>
+      <div class="form-container">
+        <form onsubmit="return false;" method="post">
+          <div class="form-group">
+            <input
+                    type="email"
+                    class="form-control input"
+                    id="login-email"
+                    placeholder="Username or email address">
+            <label for="login-email">Email</label>
+          </div>
+          <div class="form-group">
+
+            <input
+                    type="password"
+                    class="form-control input"
+                    id="login-password"
+                    placeholder="Enter your password">
+            <label for="login-password">Password</label>
+          </div>
+          <div class="form-group" style="display: block;">
+            <span class="links">Forgot password?</span>
+          </div>
+          <div class="captcha-container form-group"></div>
+          <button
+                  type="submit"
+                  id="btn-login"
+                  class="btn btn-primary btn-block">
+            Log In
+          </button>
+        </form>
+        <div class="form-group" style="display: block;">
+          <span>Don't have an account? </span><span id="signup-link" class="links">Sign up</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="signup-container" style="display: none;">
+    <div class="signup-box">
+      <div class="login-header">
+        <h3>Welcome</h3>
+        <h5>Please Sign up</h5>
+      </div>
+      <div  class="alert alert-danger error-message"></div>
+      <div class="form-container">
+        <form onsubmit="return false;" method="post">
+          <div class="form-group">
+            <input
+                    type="text"
+                    class="form-control input"
+                    id="signup-username"
+                    placeholder="Enter your username">
+            <label for="signup-username">Username</label>
+          </div>
+          <div class="form-group">
+            <input
+                    type="text"
+                    class="form-control input"
+                    id="signup-name"
+                    placeholder="Enter your first and last name">
+            <label for="signup-name">Name</label>
+          </div>
+          <div class="form-group">
+            <input
+                    type="email"
+                    class="form-control input"
+                    id="signup-email"
+                    placeholder="Enter your email">
+            <label for="signup-email">Email</label>
+          </div>
+          <div class="form-group">
+            <input type="password" class="form-control input" id="signup-password" placeholder="Enter your password">
+            <label for="signup-password">Password</label>
+          </div>
+          <div id="password-strength-validation" class="form-group" style="display: none;">
+            <span style="color: black; height: 100%;">Your password must contain: </span>
+            <ul style="height: 100%;">
+              <li><span id="password-length-met">At least 10 characters in length</span></li>
+              <li><span id="contains-lowercase">Lower case letters (a-z)</span></li>
+              <li><span id="contains-uppercase">Upper case letters (A-Z)</span></li>
+              <li><span id="contains-special-char">Special characters (ex. !@#$%&*)</span></li>
+              <li><span id="contains-num">Numbers (0-9)</span></li>
+            </ul>
+          </div>
+          <div class="captcha-container form-group"></div>
+          <div class="form-group" style="display: block">
+            <span>Already have an account? </span><span id="login-link" class="links">Login</span>
+          </div>
+          <button type="button" id="btn-signup" class="btn btn-default btn-block btn-primary" disabled>Sign Up</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+<!--[if IE 8]>
+<script src="//cdnjs.cloudflare.com/ajax/libs/ie8/0.2.5/ie8.js"></script>
+<![endif]-->
+
+<!--[if lte IE 9]>
+<script src="https://cdn.auth0.com/js/polyfills/1.0/base64.min.js"></script>
+<script src="https://cdn.auth0.com/js/polyfills/1.0/es5-shim.min.js"></script>
+<![endif]-->
+
+<script src="https://cdn.auth0.com/js/auth0/9.18/auth0.min.js"></script>
+<script src="https://cdn.auth0.com/js/polyfills/1.0/object-assign.min.js"></script>
+<script>
+  window.addEventListener('load', function() {
+    document.getElementById('login-link').addEventListener('click', displayLogin);
+    document.getElementById('signup-link').addEventListener('click', displaySignup);
+    document.getElementById('signup-password').addEventListener('keyup', validatePasswordStrength);
+    document.getElementById('signup-password').addEventListener('focus', showPasswordValidation);
+    var config = JSON.parse(
+            decodeURIComponent(escape(window.atob('@@config@@')))
+    );
+
+    var leeway = config.internalOptions.leeway;
+    if (leeway) {
+      var convertedLeeway = parseInt(leeway);
+
+      if (!isNaN(convertedLeeway)) {
+        config.internalOptions.leeway = convertedLeeway;
+      }
+    }
+
+    var params = Object.assign({
+      overrides: {
+        __tenant: config.auth0Tenant,
+        __token_issuer: config.authorizationServer.issuer
+      },
+      domain: config.auth0Domain,
+      clientID: config.clientID,
+      redirectUri: config.callbackURL,
+      responseType: 'code'
+    }, config.internalOptions);
+
+    var webAuth = new auth0.WebAuth(params);
+    var databaseConnection = 'E-commerce';
+    var captcha = webAuth.renderCaptcha(
+            document.querySelector('.captcha-container')
+    );
+
+    function showPasswordValidation(e) {
+      document.getElementById('password-strength-validation').style.display = 'block';
+    }
+
+    function validatePasswordStrength(e) {
+      const password = e.srcElement.value;
+      const numRegEx = /\d/;
+      const specialCharRegEx = /[!@#$%&*]/;
+      const uppercaseRegEx = /[A-Z]/;
+      const lowercaseRegEx = /[a-z]/;
+      const passwordLengthRegEx = /^[a-zA-Z0-9!@#$%&*]{6,100}$/
+
+      const containsNum = numRegEx.test(password);
+      const containsSpecialChar = specialCharRegEx.test(password);
+      const containsUppercase = uppercaseRegEx.test(password);
+      const containsLowercase = lowercaseRegEx.test(password);
+      const passwordLengthMet = passwordLengthRegEx.test(password);
+
+
+      const signUpButton = document.getElementById('btn-signup');
+      document.getElementById('password-length-met').style.color = (passwordLengthMet) ? 'green' : 'red';
+      document.getElementById('contains-special-char').style.color = (containsSpecialChar) ? 'green' : 'red';
+      document.getElementById('contains-num').style.color = (containsNum) ? 'green' : 'red';
+      document.getElementById('contains-lowercase').style.color = (containsLowercase) ? 'green' : 'red';
+      document.getElementById('contains-uppercase').style.color = (containsUppercase) ? 'green' : 'red';
+
+      signUpButton.disabled = !(passwordLengthMet && containsSpecialChar && containsNum && containsUppercase && containsLowercase);
+    }
+
+    function login(e) {
+      e.preventDefault();
+      var button = this;
+      var username = document.getElementById('login-email').value;
+      var password = document.getElementById('login-password').value;
+      button.disabled = true;
+      webAuth.login({
+        realm: databaseConnection,
+        username: username,
+        password: password,
+        captcha: captcha.getValue()
+      }, function(err) {
+        if (err) displayError(button, err);
+        button.disabled = false;
+      });
+    }
+
+    function signup() {
+      var button = this;
+      var username = document.getElementById('signup-username').value;
+      var name = document.getElementById('signup-name').value;
+      var email = document.getElementById('signup-email').value;
+      var password = document.getElementById('signup-password').value;
+
+      button.disabled = true;
+      webAuth.redirect.signupAndLogin({
+        connection: databaseConnection,
+        username: username,
+        name: name,
+        email: email,
+        password: password,
+        captcha: captcha.getValue()
+      }, function(err) {
+        if (err) displayError(button, err);
+        button.disabled = false;
+      });
+    }
+
+    // function loginWithGoogle() {
+    //   webAuth.authorize({
+    //     connection: 'google-oauth2'
+    //   }, function(err) {
+    //     if (err) displayError(err);
+    //   });
+    // }
+
+    function displaySignup() {
+      document.querySelector('.signup-container').style.display = 'flex';
+      document.querySelector('.login-container').style.display = 'none';
+    }
+    function displayLogin() {
+      document.querySelector('.signup-container').style.display = 'none';
+      document.querySelector('.login-container').style.display = 'flex';
+    }
+
+
+    function displayError(element, err) {
+      captcha.reload();
+      var errorMessage = element.closest('.form-container').previousElementSibling;
+      errorMessage.innerHTML = err.policy || err.description;
+      errorMessage.style.display = 'block';
+      setTimeout(() => errorMessage.style.display = 'none', 4000);
+    }
+
+    document.getElementById('btn-login').addEventListener('click', login);
+    // document.getElementById('btn-google').addEventListener('click', loginWithGoogle);
+    document.getElementById('btn-signup').addEventListener('click', signup);
+  });
+</script>
+</body>
+</html>

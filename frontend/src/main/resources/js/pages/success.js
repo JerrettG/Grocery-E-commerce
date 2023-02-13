@@ -95,8 +95,10 @@ export default class SuccessPage extends BaseClass {
             "payment_intent"
         );
         window.history.replaceState({}, document.title, "/success");
+        this.deleteCookie('clientSecret');
+        this.deleteCookie('paymentIntentId');
         const { paymentIntent } = await this.stripe.retrievePaymentIntent(clientSecret);
-        console.log(paymentIntent);
+
         switch (paymentIntent.status) {
             case "succeeded":
                 let result = await this.orderServiceClient.getOrderByPaymentId(userId, paymentIntentId, this.errorHandler);
@@ -105,7 +107,7 @@ export default class SuccessPage extends BaseClass {
                     this.orderServiceClient.updateOrder(result.id, result.userId, result.shippingInfo, result.billingInfo, "PROCESSING", result.orderItems, this.errorHandler);
                     this.dataStore.set("order", result);
                 }
-                this.showMessage("Payment succeeded!");
+                // this.showMessage("Payment succeeded!");
                 break;
             case "processing":
                 this.showMessage("Your payment is processing.");

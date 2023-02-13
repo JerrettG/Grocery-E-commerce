@@ -18,7 +18,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -34,13 +36,14 @@ public class OrderService {
     }
 
     public List<Order> getAllOrdersByUserId(String userId) {
-        List<Order> cachedOrders = cache.get(userId);
-        if (cachedOrders != null)
-            return cachedOrders;
+        Optional<List<Order>> cachedOrders = cache.get(userId);
+        if (cachedOrders.isPresent())
+            return cachedOrders.get();
 
-        List<Order> ordersFromDatabase = new ArrayList<>();
-        orderRepository.getAllOrdersByUserId(userId)
-                .forEach(entity -> ordersFromDatabase.add(convertFromEntity(entity)));
+        List<Order> ordersFromDatabase = orderRepository.getAllOrdersByUserId(userId).stream()
+                .map(this::convertFromEntity)
+                .collect(Collectors.toList());
+
         cache.add(userId, ordersFromDatabase);
 
         return ordersFromDatabase;
@@ -48,23 +51,23 @@ public class OrderService {
 
 
     public Order getOrderByOrderId(String userId, String orderId) {
-        OrderEntity entity = orderRepository.getOrderByOrderId(userId, orderId);
-        if (entity == null)
-            throw new OrderNotFoundException("Order with order id could not be found.");
+        OrderEntity entity = orderRepository.getOrderByOrderId(userId, orderId)
+                .orElseThrow(() -> new OrderNotFoundException("Order with order id could not be found."));
         return convertFromEntity(entity);
     }
 
     public Order getOrderByPaymentIntendId(String userId, String paymentIntentId) {
-        List<OrderEntity> results = orderRepository.getOrderByPaymentIntentId(userId, paymentIntentId);
-        if (results.size() == 0)
-            throw new OrderNotFoundException("Order with payment id could not be found.");
-        return convertFromEntity(results.get(0));
+        OrderEntity entity = orderRepository.getOrderByPaymentIntentId(userId, paymentIntentId)
+                .orElseThrow(() -> new OrderNotFoundException("Order with payment id could not be found."));
+        return convertFromEntity(entity);
     }
 
     public Order createOrder(Order order) {
-        List<OrderEntity> results = orderRepository.getOrderByPaymentIntentId(order.getUserId(), order.getPaymentIntentId());
-        if (results.size() > 0)
-            throw new OrderAlreadyExistsException("Cannot create order. Order already created for this transaction.");
+        orderRepository.getOrderByPaymentIntentId(order.getUserId(), order.getPaymentIntentId())
+                .ifPresent(existingOrder -> {
+                    throw new OrderAlreadyExistsException("Cannot create order. Order already created for this transaction.");
+                });
+
         order.setId(UUID.randomUUID().toString());
         order.setCreatedDate(LocalDateTime.now().toString());
         orderRepository.createOrder(convertToEntity(order));
@@ -94,8 +97,9 @@ public class OrderService {
         cache.evict(order.getUserId());
     }
     private Order convertFromEntity(OrderEntity entity) {
-        List<OrderItem> orderItems = new ArrayList<>();
-        entity.getOrderItemEntities().forEach(itemEntity -> orderItems.add(convertFromEntity(itemEntity)));
+        List<OrderItem> orderItems = entity.getOrderItemEntities().stream()
+                .map(this::convertFromEntity)
+                .collect(Collectors.toList());
 
         return Order.builder()
                 .id(entity.getId())
@@ -134,8 +138,9 @@ public class OrderService {
         );
     }
     private OrderEntity convertToEntity(Order order) {
-        List<OrderItemEntity> orderItemEntities = new ArrayList<>();
-        order.getOrderItems().forEach(orderItem -> orderItemEntities.add(convertToEntity(orderItem)));
+        List<OrderItemEntity> orderItemEntities = order.getOrderItems().stream()
+                .map(this::convertToEntity)
+                .collect(Collectors.toList());
 
         return OrderEntity.builder()
                 .id(order.getId())

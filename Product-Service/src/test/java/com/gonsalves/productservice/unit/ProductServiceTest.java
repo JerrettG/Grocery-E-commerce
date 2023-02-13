@@ -1,7 +1,7 @@
 package com.gonsalves.productservice.unit;
 
 import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
-import com.gonsalves.productservice.config.CacheStore;
+import com.gonsalves.productservice.caching.CacheStore;
 import com.gonsalves.productservice.repository.entity.Category;
 import com.gonsalves.productservice.repository.entity.ProductEntity;
 import com.gonsalves.productservice.exception.ProductAlreadyExistsException;
@@ -15,11 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -71,7 +68,7 @@ public class ProductServiceTest {
     @Test
     public void loadProductWithProductName() {
 
-        when(productRepository.loadProductWithProductName(productName)).thenReturn(Arrays.asList(productEntity));
+        when(productRepository.loadProductWithProductName(productName)).thenReturn(Optional.ofNullable(productEntity));
         Product result = productService.loadProductWithProductName(productName);
 
         assertEquals(productEntity.getProductId(), result.getProductId(), "Expected result to have matching productEntity id when loading by productEntity name, but did not");
@@ -80,7 +77,7 @@ public class ProductServiceTest {
     @Test
     public void loadProductWithProductName_productDoesNotExist_throwsProductNotFoundException() {
 
-        when(productRepository.loadProductWithProductName(productName)).thenReturn(new ArrayList<>());
+        when(productRepository.loadProductWithProductName(productName)).thenReturn(Optional.empty());
 
         assertThrows(ProductNotFoundException.class, ()->productService.loadProductWithProductName(productName),
                 "Expected ProductNotFoundException to be thrown when loading non-existent productEntity, but was not.");
@@ -88,7 +85,7 @@ public class ProductServiceTest {
 
     @Test
     public void loadProductWithProductName_dataNotInCache_callsRepositoryAndAddsDataToCache() {
-        when(productRepository.loadProductWithProductName(productName)).thenReturn(Arrays.asList(productEntity));
+        when(productRepository.loadProductWithProductName(productName)).thenReturn(Optional.ofNullable(productEntity));
         productService.loadProductWithProductName(productName);
 
         verify(productRepository).loadProductWithProductName(productName);
@@ -97,7 +94,7 @@ public class ProductServiceTest {
 
     @Test
     public void loadProductWithProductName_dataAlreadyInCache_doesNotCallRepository() {
-        when(cacheStore.getByProductName(productName)).thenReturn(product);
+        when(cacheStore.getByProductName(productName)).thenReturn(Optional.of(product));
 
         productService.loadProductWithProductName(productName);
 
@@ -106,7 +103,7 @@ public class ProductServiceTest {
 
     @Test
     public void loadAllProducts_dataNotInCache_callsRepositoryAndAddsToCache() {
-        when(cacheStore.getByCategory("ALL")).thenReturn(null);
+        when(cacheStore.getByCategory("ALL")).thenReturn(Optional.empty());
 
         productService.loadAllProducts();
 
@@ -115,7 +112,7 @@ public class ProductServiceTest {
     }
     @Test
     public void loadAllProducts_dataInCache_doesNotCallRepository() {
-        when(cacheStore.getByCategory("ALL")).thenReturn(Arrays.asList(product));
+        when(cacheStore.getByCategory("ALL")).thenReturn(Optional.of(Collections.singletonList(product)));
 
         productService.loadAllProducts();
 
@@ -125,7 +122,7 @@ public class ProductServiceTest {
     @Test
     public void loadAllProductsInCategory_dataNotInCache_callsRepositoryAndAddsToCache() {
         String category = product.getCategory();
-        when(cacheStore.getByCategory(category)).thenReturn(null);
+        when(cacheStore.getByCategory(category)).thenReturn(Optional.empty());
 
         productService.loadAllProductsInCategory(category);
 
@@ -135,7 +132,7 @@ public class ProductServiceTest {
     @Test
     public void loadAllProductsInCategory_dataInCache_doesNotCallRepository() {
         String category = product.getCategory();
-        when(cacheStore.getByCategory(category)).thenReturn(Arrays.asList(product));
+        when(cacheStore.getByCategory(category)).thenReturn(Optional.of(Collections.singletonList(product)));
 
         productService.loadAllProductsInCategory(category);
 
@@ -145,17 +142,17 @@ public class ProductServiceTest {
     @Test
     public void createProduct_productDoesNotExist_createsProductAndEvictsCategoryCache() {
 
-        when(productRepository.loadProductWithProductName(productName)).thenReturn(new ArrayList<>());
+        when(productRepository.loadProductWithProductName(productName)).thenReturn(Optional.empty());
         productService.createProduct(product);
 
-        verify(productRepository).create(eq(productEntity));
+        verify(productRepository).create(any(ProductEntity.class));
         verify(cacheStore).evictByCategory(product.getCategory());
     }
 
     @Test
     public void createProduct_productAlreadyExists_throwsProductAlreadyExistsException() {
 
-        when(productRepository.loadProductWithProductName(productName)).thenReturn(Arrays.asList(productEntity));
+        when(productRepository.loadProductWithProductName(productName)).thenReturn(Optional.ofNullable(productEntity));
 
        assertThrows(ProductAlreadyExistsException.class, ()->productService.createProduct(product),
                "Expected ProductAlreadyExistsException to be thrown when creating productEntity with the same name, but was not.");
@@ -163,7 +160,7 @@ public class ProductServiceTest {
 
     @Test
     public void updateProduct_productExists_updatesProductAndEvictsCache() {
-        when(productRepository.loadProductWithProductName(productName)).thenReturn(Arrays.asList(productEntity));
+        when(productRepository.loadProductWithProductName(productName)).thenReturn(Optional.ofNullable(productEntity));
 
         productService.updateProduct(product);
 
@@ -182,7 +179,7 @@ public class ProductServiceTest {
     @Test
     public void deleteProduct_productExists_deletesProductAndEvictsCache() {
 
-        when(productRepository.loadProductWithProductName(productName)).thenReturn(Arrays.asList(productEntity));
+        when(productRepository.loadProductWithProductName(productName)).thenReturn(Optional.ofNullable(productEntity));
         productService.deleteProduct(productName);
 
         verify(productRepository).delete(productEntity);
@@ -192,7 +189,7 @@ public class ProductServiceTest {
     @Test
     public void deleteProduct_productDoesNotExists_throwsProductNotFoundException() {
 
-        when(productRepository.loadProductWithProductName(productName)).thenReturn(new ArrayList<>());
+        when(productRepository.loadProductWithProductName(productName)).thenReturn(Optional.empty());
 
         assertThrows(ProductNotFoundException.class, ()->productService.deleteProduct(productName),
                 "Expected delete of productEntity that does not exist to throw ProductNotFoundException, but did not.");

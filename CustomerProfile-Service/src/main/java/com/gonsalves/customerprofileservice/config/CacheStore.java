@@ -4,6 +4,8 @@ import com.gonsalves.customerprofileservice.service.model.CustomerProfile;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
+import javax.swing.text.html.Option;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class CacheStore {
@@ -18,8 +20,8 @@ public class CacheStore {
                 .build();
     }
 
-    public CustomerProfile get(String key) {
-        return cache.getIfPresent(key);
+    public Optional<CustomerProfile> get(String key) {
+        return Optional.ofNullable(cache.getIfPresent(key));
     }
 
     public void evict(String key) {

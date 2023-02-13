@@ -1,5 +1,6 @@
 package com.gonsalves.productservice.config;
 
+import com.gonsalves.productservice.caching.CacheStore;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

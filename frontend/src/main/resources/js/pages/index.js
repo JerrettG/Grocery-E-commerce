@@ -88,7 +88,7 @@ class IndexPage extends BaseClass {
         let result = await this.productServiceClient.getAllProducts(this.errorHandler);
         this.dataStore.set('products', result);
         if (result) {
-            this.showMessage(`Product catalog loaded successfully`);
+            // this.showMessage(`Product catalog loaded successfully`);
         } else {
             this.errorHandler("Error getting product catalog. Try again...");
         }
@@ -103,10 +103,11 @@ class IndexPage extends BaseClass {
         category = category.replaceAll("AMP;", "");
         category = category.replaceAll(",", "");
         category = category.trim();
-        let { productList } = await this.productServiceClient.getProductsByCategory(category, this.errorHandler);
-        this.dataStore.set("products", productList);
-        if (productList) {
-            this.showMessage(`Product catalog loaded successfully`);
+
+        let result  = await this.productServiceClient.getProductsByCategory(category, this.errorHandler);
+        this.dataStore.set("products", result);
+        if (result) {
+            // this.showMessage(`Product catalog loaded successfully`);
         } else {
             this.errorHandler("Error getting product catalog. Try again...");
         }
@@ -140,7 +141,7 @@ class IndexPage extends BaseClass {
                     </div>
                     `;
                 setTimeout(() => {addButton.innerHTML = originalInnerHtml; }, 2000);
-                this.showMessage(`Item added to cart successfully`);
+                // this.showMessage(`Item added to cart successfully`);
             } else {
                 this.errorHandler("Error doing adding to cart. Try again...");
             }
@@ -164,7 +165,7 @@ class IndexPage extends BaseClass {
                 }
             }
             this.dataStore.set('products', results);
-        }
+        } //TODO this should not change the list of products but only change the shown products
     }
 }
 

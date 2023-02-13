@@ -804,6 +804,15 @@ section {
     font-size: 1em;
     color: #30313d;
 }
+#payment-form {
+    display: flex;
+    flex-direction: column;
+    row-gap: 1em;
+}
+#email-input {
+    width: 80%;
+}
+
 .first-last-name-container, .city-state-zip-container {
     display: flex;
     flex-direction: row;
@@ -813,7 +822,7 @@ section {
 .name-container {
     width: 40%;
 }
-.name-container, .zip-container, .state-container, .city-container {
+.name-container, .zip-container, .state-container, .city-container, .checkout-input {
     display:flex;
     flex-direction: column;
 }

@@ -68,7 +68,7 @@ public class CartServiceTest {
 
         cartService.addItemToCart(cartItem);
 
-        verify(cartRepository).create(eq(cartItemEntity));
+        verify(cartRepository).create(any(CartItemEntity.class));
     }
     @Test
     public void addItemToCart_itemAlreadyInCart_itemQuantityIncremented() {

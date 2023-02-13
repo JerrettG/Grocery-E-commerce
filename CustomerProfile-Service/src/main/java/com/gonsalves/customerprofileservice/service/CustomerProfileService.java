@@ -16,6 +16,8 @@ import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class CustomerProfileService {
     private final CustomerProfileRepository customerProfileRepository;
@@ -26,13 +28,12 @@ public class CustomerProfileService {
         this.cache = cache;
     }
     public CustomerProfile loadCustomerByUserId(String userId) {
-        CustomerProfile cachedProfile = cache.get(userId);
-        if (cachedProfile != null)
-            return cachedProfile;
+        Optional<CustomerProfile> cachedProfile = cache.get(userId);
+        if (cachedProfile.isPresent())
+            return cachedProfile.get();
 
-      CustomerProfileEntity entity = customerProfileRepository.loadCustomerByUserId(userId);
-      if (entity == null)
-          throw new CustomerProfileNotFoundException("Customer with specified userId does not exist.");
+      CustomerProfileEntity entity = customerProfileRepository.loadCustomerByUserId(userId)
+              .orElseThrow(() -> new CustomerProfileNotFoundException("Customer with specified userId does not exist."));
 
       CustomerProfile profileFromDataDatabase = convertToCustomerProfile(entity);
       cache.add(userId, profileFromDataDatabase);

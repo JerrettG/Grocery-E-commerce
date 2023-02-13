@@ -82,7 +82,7 @@ class ShoppingCartPage extends BaseClass {
         let result = await this.cartServiceClient.getCartForUserId(userId, this.errorHandler);
         this.dataStore.set('cart', result);
         if (result) {
-            this.showMessage(`Shopping cart loaded successfully`);
+            // this.showMessage(`Shopping cart loaded successfully`);
         } else {
             this.errorHandler("Error doing GET! Try again...");
         }
