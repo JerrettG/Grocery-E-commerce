@@ -1,9 +1,7 @@
 package com.gonsalves.customerprofileservice.service;
 
-import com.gonsalves.customerprofileservice.config.CacheStore;
-import com.gonsalves.customerprofileservice.controller.model.CustomerProfileCreateRequest;
-import com.gonsalves.customerprofileservice.controller.model.CustomerProfileRequest;
-import com.gonsalves.customerprofileservice.controller.model.CustomerProfileUpdateRequest;
+import com.gonsalves.customerprofileservice.caching.DistributedCache;
+import com.gonsalves.customerprofileservice.caching.InMemoryCache;
 import com.gonsalves.customerprofileservice.repository.entity.AddressInfoEntity;
 import com.gonsalves.customerprofileservice.repository.entity.CustomerProfileEntity;
 import com.gonsalves.customerprofileservice.exception.CustomerProfileAlreadyExistsException;
@@ -12,7 +10,7 @@ import com.gonsalves.customerprofileservice.repository.CustomerProfileRepository
 import com.gonsalves.customerprofileservice.repository.entity.Status;
 import com.gonsalves.customerprofileservice.service.model.AddressInfo;
 import com.gonsalves.customerprofileservice.service.model.CustomerProfile;
-import org.checkerframework.checker.units.qual.A;
+import com.gonsalves.customerprofileservice.util.TypeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,23 +18,27 @@ import java.util.Optional;
 
 @Service
 public class CustomerProfileService {
+    private final String PROFILE_KEY = "Profile::%s";
+    private final int PROFILE_TTL = 60*60;
     private final CustomerProfileRepository customerProfileRepository;
-    private final CacheStore cache;
+    private final DistributedCache distributedCache;
     @Autowired
-    public CustomerProfileService(CustomerProfileRepository customerProfileRepository, CacheStore cache) {
+    public CustomerProfileService(CustomerProfileRepository customerProfileRepository, DistributedCache distributedCache) {
         this.customerProfileRepository = customerProfileRepository;
-        this.cache = cache;
+        this.distributedCache = distributedCache;
     }
     public CustomerProfile loadCustomerByUserId(String userId) {
-        Optional<CustomerProfile> cachedProfile = cache.get(userId);
+        String key = String.format(PROFILE_KEY, userId);
+        Optional<String> cachedProfile = distributedCache.getValue(key);
         if (cachedProfile.isPresent())
-            return cachedProfile.get();
+            return TypeConverter.fromJson(cachedProfile.get());
 
       CustomerProfileEntity entity = customerProfileRepository.loadCustomerByUserId(userId)
               .orElseThrow(() -> new CustomerProfileNotFoundException("Customer with specified userId does not exist."));
 
-      CustomerProfile profileFromDataDatabase = convertToCustomerProfile(entity);
-      cache.add(userId, profileFromDataDatabase);
+      CustomerProfile profileFromDataDatabase = TypeConverter.convertFromEntity(entity);
+
+      distributedCache.setValue(userId, PROFILE_TTL,TypeConverter.toJson(profileFromDataDatabase));
 
       return profileFromDataDatabase;
     }
@@ -47,12 +49,12 @@ public class CustomerProfileService {
             if (retrievedProfile.getStatus().equals(Status.ACTIVE.toString()))
                 throw new CustomerProfileAlreadyExistsException("Customer with specified userId already exists.");
             else {
-                CustomerProfileEntity entity = convertToEntity(retrievedProfile);
+                CustomerProfileEntity entity = TypeConverter.convertToEntity(retrievedProfile);
                 entity.setStatus(Status.ACTIVE);
                 customerProfileRepository.updateCustomerProfile(entity);
             }
         } catch (CustomerProfileNotFoundException e) {
-            CustomerProfileEntity entity = convertToEntity(profile);
+            CustomerProfileEntity entity = TypeConverter.convertToEntity(profile);
             entity.setStatus(Status.ACTIVE);
             customerProfileRepository.createCustomerProfile(entity);
         }
@@ -60,10 +62,12 @@ public class CustomerProfileService {
 
     public void updateCustomerProfile(CustomerProfile profile) {
         CustomerProfile previousProfile = loadCustomerByUserId(profile.getUserId());
-        CustomerProfileEntity updatedProfile = convertToEntity(profile);
+        CustomerProfileEntity updatedProfile = TypeConverter.convertToEntity(profile);
 
         customerProfileRepository.updateCustomerProfile(updatedProfile);
-        cache.evict(profile.getUserId());
+
+        String key = String.format(PROFILE_KEY, profile.getUserId());
+        distributedCache.invalidate(key);
     }
 
     /**
@@ -75,7 +79,9 @@ public class CustomerProfileService {
         CustomerProfileEntity entity = CustomerProfileEntity.builder().userId(userId).build();
 
         customerProfileRepository.deleteCustomerProfile(entity);
-        cache.evict(userId);
+
+        String key = String.format(PROFILE_KEY, profile.getUserId());
+        distributedCache.invalidate(key);
     }
 
     /**
@@ -91,54 +97,14 @@ public class CustomerProfileService {
                 .email(profile.getEmail())
                 .firstName(profile.getFirstName())
                 .lastName(profile.getLastName())
-                .shippingInfo(convertToEntity(profile.getShippingInfo()))
+                .shippingInfo(TypeConverter.convertToEntity(profile.getShippingInfo()))
                 .build();
         entity.setStatus(Status.INACTIVE);
         customerProfileRepository.updateCustomerProfile(entity);
-        cache.evict(userId);
+
+        String key = String.format(PROFILE_KEY, profile.getUserId());
+        distributedCache.invalidate(key);
     }
 
-    private CustomerProfile convertToCustomerProfile(CustomerProfileEntity entity) {
-        return new CustomerProfile(
-                entity.getUserId(),
-                entity.getEmail(),
-                entity.getFirstName(),
-                entity.getLastName(),
-                convertFromEntity(entity.getShippingInfo()),
-                entity.getStatus().toString()
-        );
-    }
-    private CustomerProfileEntity convertToEntity(CustomerProfile profile) {
-        return CustomerProfileEntity.builder()
-                .userId(profile.getUserId())
-                .email(profile.getEmail())
-                .firstName(profile.getFirstName())
-                .lastName(profile.getLastName())
-                .shippingInfo(convertToEntity(profile.getShippingInfo()))
-                .build();
-    }
 
-    private AddressInfoEntity convertToEntity(AddressInfo addressInfo) {
-        return new AddressInfoEntity(
-                addressInfo.getFirstName(),
-                addressInfo.getLastName(),
-                addressInfo.getAddressFirstLine(),
-                addressInfo.getAddressSecondLine(),
-                addressInfo.getCity(),
-                addressInfo.getState(),
-                addressInfo.getZipCode()
-        );
-    }
-
-    private AddressInfo convertFromEntity(AddressInfoEntity entity) {
-        return new AddressInfo(
-                entity.getFirstName(),
-                entity.getLastName(),
-                entity.getAddressFirstLine(),
-                entity.getAddressSecondLine(),
-                entity.getCity(),
-                entity.getState(),
-                entity.getZipCode()
-        );
-    }
 }

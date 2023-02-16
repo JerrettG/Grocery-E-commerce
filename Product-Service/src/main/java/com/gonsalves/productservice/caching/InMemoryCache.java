@@ -8,12 +8,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-public class CacheStore {
+public class InMemoryCache {
 
     private final Cache<String, Product> productNameCache;
     private final Cache<String, List<Product>> productListCache;
 
-    public CacheStore(int expiry, TimeUnit timeUnit, long maximumSize) {
+    public InMemoryCache(int expiry, TimeUnit timeUnit, long maximumSize) {
         this.productNameCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(expiry, timeUnit)
                 .maximumSize(maximumSize)

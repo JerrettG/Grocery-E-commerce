@@ -1,18 +1,17 @@
-package com.gonsalves.orderservice.config;
+package com.gonsalves.orderservice.caching;
 
 import com.gonsalves.orderservice.service.model.Order;
-import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-public class CacheStore {
+public class InMemoryCache {
 
-    private final Cache<String, List<Order>> cache;
+    private final com.google.common.cache.Cache<String, List<Order>> cache;
 
-    public CacheStore(int expiry, TimeUnit timeUnit, long maximumSize) {
+    public InMemoryCache(int expiry, TimeUnit timeUnit, long maximumSize) {
         this.cache = CacheBuilder.newBuilder()
                 .expireAfterWrite(expiry, timeUnit)
                 .maximumSize(maximumSize)
@@ -20,16 +19,23 @@ public class CacheStore {
                 .build();
     }
 
-    public Optional<List<Order>> get(String key) {
+    public Optional<List<Order>>  getValue(String key) {
+        checkNonNull(key);
         return Optional.ofNullable(cache.getIfPresent(key));
     }
 
-    public void evict(String key) {
+    public void invalidate(String key) {
+        checkNonNull(key);
         cache.invalidate(key);
     }
 
-    public void add(String key, List<Order> value) {
+    public void setValue(String key, List<Order> value) {
+        checkNonNull(key);
         cache.put(key, value);
+    }
+
+    private void checkNonNull(String key) {
+        Optional.ofNullable(key).orElseThrow(() -> new IllegalArgumentException("Cache cannot accept null key"));
     }
 
 }
