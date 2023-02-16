@@ -1,24 +1,20 @@
 package com.gonsalves.orderservice.unit;
 
-import com.gonsalves.orderservice.config.CacheStore;
+import com.gonsalves.orderservice.caching.DistributedCache;
+import com.gonsalves.orderservice.caching.InMemoryCache;
 import com.gonsalves.orderservice.repository.entity.OrderEntity;
 import com.gonsalves.orderservice.repository.entity.OrderItemEntity;
 import com.gonsalves.orderservice.exception.OrderAlreadyExistsException;
 import com.gonsalves.orderservice.exception.OrderNotFoundException;
 import com.gonsalves.orderservice.repository.OrderRepository;
-import com.gonsalves.orderservice.repository.entity.Status;
 import com.gonsalves.orderservice.service.OrderService;
-import com.gonsalves.orderservice.service.model.AddressInfo;
 import com.gonsalves.orderservice.service.model.Order;
-import net.andreinc.mockneat.MockNeat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import javax.swing.text.html.Option;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,7 +30,7 @@ public class OrderServiceTest {
     @Mock
     private OrderRepository orderRepository;
     @Mock
-    private CacheStore cache;
+    private DistributedCache cache;
     private Order order;
 
     private OrderEntity orderEntity;
@@ -45,6 +41,7 @@ public class OrderServiceTest {
     private String paymentIntentId;
 
     private OrderItemEntity orderItemEntity;
+    private final String ORDERS_FOR_USER_KEY ="Orders-UserId::%s";
 
     @BeforeEach
     public void before() {
@@ -60,7 +57,7 @@ public class OrderServiceTest {
         List<OrderEntity> orderEntityList = new ArrayList<>(Arrays.asList(orderEntity));
 
         when(orderRepository.getAllOrdersByUserId(userId)).thenReturn(orderEntityList);
-        when(cache.get(userId)).thenReturn(Optional.empty());
+        when(cache.getValue(eq(String.format(ORDERS_FOR_USER_KEY, userId)))).thenReturn(Optional.empty());
         List<Order> result = orderService.getAllOrdersByUserId(userId);
 
         assertEquals(orderEntityList.size(), result.size(), "Expected method to return a list of all orders, but did not");

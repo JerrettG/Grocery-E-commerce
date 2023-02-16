@@ -1,7 +1,7 @@
 package com.gonsalves.productservice.unit;
 
 import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
-import com.gonsalves.productservice.caching.CacheStore;
+import com.gonsalves.productservice.caching.InMemoryCache;
 import com.gonsalves.productservice.repository.entity.Category;
 import com.gonsalves.productservice.repository.entity.ProductEntity;
 import com.gonsalves.productservice.exception.ProductAlreadyExistsException;
@@ -29,7 +29,7 @@ public class ProductServiceTest {
     @Mock
     private ProductRepository productRepository;
     @Mock
-    private CacheStore cacheStore;
+    private InMemoryCache inMemoryCache;
     private String productId;
     private Product product;
 
@@ -89,12 +89,12 @@ public class ProductServiceTest {
         productService.loadProductWithProductName(productName);
 
         verify(productRepository).loadProductWithProductName(productName);
-        verify(cacheStore).addByProductName(eq(productName), any(Product.class));
+        verify(inMemoryCache).addByProductName(eq(productName), any(Product.class));
     }
 
     @Test
     public void loadProductWithProductName_dataAlreadyInCache_doesNotCallRepository() {
-        when(cacheStore.getByProductName(productName)).thenReturn(Optional.of(product));
+        when(inMemoryCache.getByProductName(productName)).thenReturn(Optional.of(product));
 
         productService.loadProductWithProductName(productName);
 
@@ -103,16 +103,16 @@ public class ProductServiceTest {
 
     @Test
     public void loadAllProducts_dataNotInCache_callsRepositoryAndAddsToCache() {
-        when(cacheStore.getByCategory("ALL")).thenReturn(Optional.empty());
+        when(inMemoryCache.getByCategory("ALL")).thenReturn(Optional.empty());
 
         productService.loadAllProducts();
 
         verify(productRepository).loadAll();
-        verify(cacheStore).addByCategory(eq("ALL"), anyList());
+        verify(inMemoryCache).addByCategory(eq("ALL"), anyList());
     }
     @Test
     public void loadAllProducts_dataInCache_doesNotCallRepository() {
-        when(cacheStore.getByCategory("ALL")).thenReturn(Optional.of(Collections.singletonList(product)));
+        when(inMemoryCache.getByCategory("ALL")).thenReturn(Optional.of(Collections.singletonList(product)));
 
         productService.loadAllProducts();
 
@@ -122,17 +122,17 @@ public class ProductServiceTest {
     @Test
     public void loadAllProductsInCategory_dataNotInCache_callsRepositoryAndAddsToCache() {
         String category = product.getCategory();
-        when(cacheStore.getByCategory(category)).thenReturn(Optional.empty());
+        when(inMemoryCache.getByCategory(category)).thenReturn(Optional.empty());
 
         productService.loadAllProductsInCategory(category);
 
         verify(productRepository).loadAllProductsInCategory(Category.valueOf(category));
-        verify(cacheStore).addByCategory(eq(category), anyList());
+        verify(inMemoryCache).addByCategory(eq(category), anyList());
     }
     @Test
     public void loadAllProductsInCategory_dataInCache_doesNotCallRepository() {
         String category = product.getCategory();
-        when(cacheStore.getByCategory(category)).thenReturn(Optional.of(Collections.singletonList(product)));
+        when(inMemoryCache.getByCategory(category)).thenReturn(Optional.of(Collections.singletonList(product)));
 
         productService.loadAllProductsInCategory(category);
 
@@ -146,7 +146,7 @@ public class ProductServiceTest {
         productService.createProduct(product);
 
         verify(productRepository).create(any(ProductEntity.class));
-        verify(cacheStore).evictByCategory(product.getCategory());
+        verify(inMemoryCache).evictByCategory(product.getCategory());
     }
 
     @Test
@@ -165,7 +165,7 @@ public class ProductServiceTest {
         productService.updateProduct(product);
 
         verify(productRepository).update(eq(productEntity));
-        verify(cacheStore).evictByProductName(productName);
+        verify(inMemoryCache).evictByProductName(productName);
     }
 
     @Test
@@ -183,7 +183,7 @@ public class ProductServiceTest {
         productService.deleteProduct(productName);
 
         verify(productRepository).delete(productEntity);
-        verify(cacheStore).evictByProductName(productName);
+        verify(inMemoryCache).evictByProductName(productName);
     }
 
     @Test

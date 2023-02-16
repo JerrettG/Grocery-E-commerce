@@ -1,16 +1,16 @@
-package com.gonsalves.productservice.caching;
+package com.gonsalves.orderservice.caching;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 import java.util.Optional;
+
 @Component
 public class DistributedCache {
-
     private final JedisPool jedisPool;
 
     @Autowired
@@ -31,6 +31,7 @@ public class DistributedCache {
             jedis.setex(key, seconds, value);
         }
     }
+
 
     public void invalidate(String key) {
         checkNonNull(key);

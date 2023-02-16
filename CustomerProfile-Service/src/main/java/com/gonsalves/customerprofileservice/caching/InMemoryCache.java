@@ -1,18 +1,17 @@
-package com.gonsalves.customerprofileservice.config;
+package com.gonsalves.customerprofileservice.caching;
 
 import com.gonsalves.customerprofileservice.service.model.CustomerProfile;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-import javax.swing.text.html.Option;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-public class CacheStore {
+public class InMemoryCache {
 
     private final Cache<String, CustomerProfile> cache;
 
-    public CacheStore(int expiry, TimeUnit timeUnit, long maximumSize) {
+    public InMemoryCache(int expiry, TimeUnit timeUnit, long maximumSize) {
         this.cache = CacheBuilder.newBuilder()
                 .expireAfterWrite(expiry, timeUnit)
                 .maximumSize(maximumSize)

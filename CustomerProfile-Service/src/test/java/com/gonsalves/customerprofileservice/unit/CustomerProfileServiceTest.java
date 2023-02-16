@@ -1,8 +1,7 @@
 package com.gonsalves.customerprofileservice.unit;
 
-import com.gonsalves.customerprofileservice.config.CacheStore;
-import com.gonsalves.customerprofileservice.controller.model.CustomerProfileCreateRequest;
-import com.gonsalves.customerprofileservice.controller.model.CustomerProfileUpdateRequest;
+import com.gonsalves.customerprofileservice.caching.DistributedCache;
+import com.gonsalves.customerprofileservice.caching.InMemoryCache;
 import com.gonsalves.customerprofileservice.repository.entity.AddressInfoEntity;
 import com.gonsalves.customerprofileservice.repository.entity.CustomerProfileEntity;
 import com.gonsalves.customerprofileservice.exception.CustomerProfileAlreadyExistsException;
@@ -36,7 +35,7 @@ public class CustomerProfileServiceTest {
     @Mock
     private CustomerProfileRepository customerProfileRepository;
     @Mock
-    private CacheStore cache;
+    private DistributedCache cache;
 
     private String userId;
     private CustomerProfileEntity profileEntity;
