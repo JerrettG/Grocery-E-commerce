@@ -24,6 +24,7 @@ Grocery E-commerce website built using Spring and made deployable to a Kubernete
 - [ ] Enabling distributed caching for individual services via Redis using the Jedis library
 - [ ] Multiple saved addresses for shipping and billing
 - [ ] Creation of another project that uses existing Order Service API to create an order fulfillment service that updates status and contents of user orders
+- [ ] Refactor of applications to utilize eureka discovery service in dev and prod kubernetes cluster instead of kubernetes native service discovery
 
 # Current Development Demo
 
