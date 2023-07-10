@@ -17,7 +17,6 @@ public class DistributedCache {
     public DistributedCache(JedisPoolConfig jedisPoolConfig, @Value("${jedis.url}") String redisUrl) {
         this.jedisPool = new JedisPool(jedisPoolConfig, redisUrl, 6379);
     }
-
     public Optional<String> getValue(String key) {
         checkNonNull(key);
         try (Jedis jedis = jedisPool.getResource()) {

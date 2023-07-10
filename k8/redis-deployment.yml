@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+spec:
+  replicas: 1  # Set the desired number of Redis replicas
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:latest  # Use the desired Redis image
+          ports:
+            - containerPort: 6379  # Expose the Redis default port
+          resources:
+            requests:
+              cpu: "100m"  # Set the CPU resource request
+              memory: "256Mi"  # Set the memory resource request
+            limits:
+              cpu: "500m"  # Set the CPU resource limit
+              memory: "512Mi"  # Set the memory resource limit
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis-service-svc
+spec:
+  selector:
+    app: redis
+  type: ClusterIP
+  ports:
+    - port: 6379
+      targetPort: 6379
+      protocol: TCP

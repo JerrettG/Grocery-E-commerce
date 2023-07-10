@@ -27,7 +27,7 @@ spec:
                   name: secret
                   key: stripe-api-key
           command: ["stripe"]
-          args: ["listen", "--api-key", "${STRIPE_API_KEY}", "-f", "http://user-interface-lb.default.svc.cluster.local/stripe/events"]
+          args: ["listen", "--api-key", "${STRIPE_API_KEY}", "-f", "http://frontend-web-svc.default.svc.cluster.local/stripe/events"]
 ---
 kind: Service
 apiVersion: v1

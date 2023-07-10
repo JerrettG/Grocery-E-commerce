@@ -1,31 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: customer-profile-service-app
+  name: customer-profile-service-deployment
   labels:
-    app: customer-profile-service-app
+    app: customer-profile-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: customer-profile-service-app
+      app: customer-profile-service
   template:
     metadata:
       labels:
-        app: customer-profile-service-app
+        app: customer-profile-service
     spec:
       containers:
-        - name: customer-profile-service-app
+        - name: customer-profile-service
           image: docker.io/jerrettg/grocery-e-commerce-customer-profile-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
-            - name: ZIPKIN_SERVER_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: gateway-cm
-                  key: zipkin_service_url
             - name: GROCERY_AWS_REGION
               valueFrom:
                 secretKeyRef:
@@ -48,7 +43,7 @@ metadata:
   name: customer-profile-service-svc
 spec:
   selector:
-    app: customer-profile-service-app
+    app: customer-profile-service
   type: ClusterIP
   ports:
     - port: 80

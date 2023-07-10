@@ -5,10 +5,10 @@ COPY .mvn .mvn
 COPY pom.xml .
 COPY src src
 RUN ./mvnw package
-COPY target/*.jar orderEntity-service.jar
+COPY target/*.jar order-service.jar
 
 FROM openjdk:17
-COPY --from=buildstage /Order-Service/orderEntity-service.jar .
-ENTRYPOINT ["java","-jar","-Dspring.profiles.active=prod","/orderEntity-service.jar"]
+COPY --from=buildstage /Order-Service/order-service.jar .
+ENTRYPOINT ["java","-jar","-Dspring.profiles.active=dev","/order-service.jar"]
 
-EXPOSE 8087
+EXPOSE 8080

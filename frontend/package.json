@@ -1,5 +1,5 @@
 {
-  "name": "frontend-frontend",
+  "name": "frontend-web",
   "author": "Bootify.io",
   "scripts": {
     "devserver": "webpack serve --mode development",

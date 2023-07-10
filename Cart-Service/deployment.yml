@@ -1,31 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cart-service-app
+  name: cart-service-deployment
   labels:
-    app: cart-service-app
+    app: cart-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: cart-service-app
+      app: cart-service
   template:
     metadata:
       labels:
-        app: cart-service-app
+        app: cart-service
     spec:
       containers:
-        - name: cart-service-app
+        - name: cart-service
           image: docker.io/jerrettg/grocery-e-commerce-cart-service:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 8083
+            - containerPort: 8080
           env:
-            - name: ZIPKIN_SERVER_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: gateway-cm
-                  key: zipkin_service_url
             - name: GROCERY_AWS_REGION
               valueFrom:
                 secretKeyRef:
@@ -48,9 +43,9 @@ metadata:
   name: cart-service-svc
 spec:
   selector:
-    app: cart-service-app
+    app: cart-service
   type: ClusterIP
   ports:
     - port: 80
-      targetPort: 8083
+      targetPort: 8080
       protocol: TCP

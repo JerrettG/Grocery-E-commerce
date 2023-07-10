@@ -294,7 +294,7 @@ section {
     width: 100%;
     padding-top:4em;
     height: 500px;
-    background-image: url("http://localhost:8084/images/grocery-hero-image.jpeg");
+    background-image: url("http://localhost:8080/images/grocery-hero-image.jpeg");
     background-position: center;
     background-size: cover;
 }

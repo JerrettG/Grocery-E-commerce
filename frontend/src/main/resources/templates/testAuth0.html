@@ -181,12 +181,10 @@
     border: solid thin gray;
     padding: .5em;
     border-radius: var(--input-border-radius);
-    transition: all 0.3s ease;
   }
   #password-strength-validation span {
     color: red;
     font-size: small;
-    transition: all ease .2s;
   }
 </style>
 <body>
@@ -272,16 +270,16 @@
             <label for="signup-password">Password</label>
           </div>
           <div id="password-strength-validation" class="form-group" style="display: none;">
-            <span style="color: black; height: 100%;">Your password must contain: </span>
-            <ul style="height: 100%;">
+            <span style="color: black;">Your password must contain: </span>
+            <ul>
               <li><span id="password-length-met">At least 10 characters in length</span></li>
               <li><span id="contains-lowercase">Lower case letters (a-z)</span></li>
               <li><span id="contains-uppercase">Upper case letters (A-Z)</span></li>
               <li><span id="contains-special-char">Special characters (ex. !@#$%&*)</span></li>
               <li><span id="contains-num">Numbers (0-9)</span></li>
+              <div class="captcha-container form-group"></div>
             </ul>
           </div>
-          <div class="captcha-container form-group"></div>
           <div class="form-group" style="display: block">
             <span>Already have an account? </span><span id="login-link" class="links">Login</span>
           </div>
@@ -333,13 +331,13 @@
     }, config.internalOptions);
 
     var webAuth = new auth0.WebAuth(params);
-    var databaseConnection = 'E-commerce';
+    var databaseConnection = 'Timely';
     var captcha = webAuth.renderCaptcha(
             document.querySelector('.captcha-container')
     );
 
     function showPasswordValidation(e) {
-      document.getElementById('password-strength-validation').style.display = 'block';
+      document.getElementById('password-strength-validation').style.display=  'block';
     }
 
     function validatePasswordStrength(e) {
@@ -348,7 +346,7 @@
       const specialCharRegEx = /[!@#$%&*]/;
       const uppercaseRegEx = /[A-Z]/;
       const lowercaseRegEx = /[a-z]/;
-      const passwordLengthRegEx = /^[a-zA-Z0-9!@#$%&*]{6,100}$/
+      const passwordLengthRegEx = /^[a-zA-Z0-9!@#$%&*]{6,16}$/
 
       const containsNum = numRegEx.test(password);
       const containsSpecialChar = specialCharRegEx.test(password);
