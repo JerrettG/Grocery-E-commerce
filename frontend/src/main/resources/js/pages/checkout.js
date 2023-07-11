@@ -199,7 +199,7 @@ export default class CheckoutPage extends BaseClass {
             elements,
             confirmParams: {
                 // Make sure to change this to your payment completion page
-                return_url: "http://localhost:8084/success",
+                return_url: "http://localhost:8080/success",
                 receipt_email: document.getElementById("email-input").value,
             },
         });

@@ -117,7 +117,7 @@ class IndexPage extends BaseClass {
         const addButton = event.srcElement;
         let originalInnerHtml = addButton.innerHTML;
         this.showLoading(addButton);
-        if (!isAuthenticated) {
+        if (!userId) {
             window.location.href = "http://localhost:8084/oauth2/authorization/auth0";
         } else {
             const addToCartForm = addButton.closest("li").nextElementSibling;

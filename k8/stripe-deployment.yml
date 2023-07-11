@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: stripe-app
+  name: stripe-deployment
   labels:
-    app: stripe-app
+    app: stripe
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: stripe-app
+      app: stripe
   template:
     metadata:
       labels:
-        app: stripe-app
+        app: stripe
     spec:
       containers:
-        - name: stripe-app
+        - name: stripe
           image: stripe/stripe-cli:latest
           imagePullPolicy: Always
           ports:
@@ -27,7 +27,7 @@ spec:
                   name: secret
                   key: stripe-api-key
           command: ["stripe"]
-          args: ["listen", "--api-key", "${STRIPE_API_KEY}", "-f", "http://frontend-web-svc.default.svc.cluster.local/stripe/events"]
+          args: ["listen", "--api-key", "${STRIPE_API_KEY}", "-f", "http://api-gateway-svc.grocery-dev.svc.cluster.local:8080/stripe/events"]
 ---
 kind: Service
 apiVersion: v1
@@ -35,20 +35,8 @@ metadata:
   name: stripe-svc
 spec:
   selector:
-    app: stripe-app
+    app: stripe
   type: ClusterIP
   ports:
     - port: 80
       targetPort: 8086
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: stripe-np
-spec:
-  selector:
-    app: stripe-app
-  type: NodePort
-  ports:
-    - port: 80
-      nodePort: 30497

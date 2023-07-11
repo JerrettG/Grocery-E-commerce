@@ -19,13 +19,13 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-#      - api-gateway
+      - api-gateway
       - zipkin
-#      - product-service
-#      - stripe
-#      - cart-service
-#      - customer-profile-service
-#      - order-service
+      - product-service
+      - stripe
+      - cart-service
+      - customer-profile-service
+      - order-service
 
   product-service:
     container_name: product-service

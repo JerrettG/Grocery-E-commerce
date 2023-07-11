@@ -132,7 +132,7 @@ class ProfilePage extends BaseClass {
         const result = await this.orderServiceClient.getAllOrdersForUserId(userId, this.errorHandler);
         if (result) {
             result.sort(function(a,b) {
-             return new Date(b.createdDate) - new Date(a.createdDate)});
+                return new Date(b.createdDate) - new Date(a.createdDate)});
             this.dataStore.set("orders", result);
             // this.showMessage(`Retrieved orders for ${userId}`);
         } else {
