@@ -1,23 +1,23 @@
 version: '3.8'
 
 services:
-#  discovery-service:
-#    container_name: discovery-service
-#    build:
-#      context: ./DiscoveryService
-#      dockerfile: Dockerfile
-#    image: jerrettg/grocery-e-commerce-discovery-service:latest
-#    ports:
-#      - "8761:8761"
-
-  user-interface:
-    container_name: user-interface
+  discovery-service:
+    container_name: discovery-service
     build:
-      context: ./UI
+      context: ./DiscoveryService
       dockerfile: Dockerfile
-    image: jerrettg/grocery-e-commerce-user-interface:latest
+    image: jerrettg/grocery-e-commerce-discovery-service:latest
     ports:
-      - "8084:8084"
+      - "8761:8761"
+
+  frontend-web:
+    container_name: frontend-web
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: jerrettg/grocery-e-commerce-frontend-web:latest
+    ports:
+      - "8080:8080"
     depends_on:
       - api-gateway
       - zipkin
@@ -34,7 +34,7 @@ services:
       dockerfile: Dockerfile
     image: jerrettg/grocery-e-commerce-product-service:latest
     ports:
-      - "8081:8081"
+      - "8080:8080"
     depends_on:
       - zipkin
 
@@ -56,7 +56,7 @@ services:
       dockerfile: Dockerfile
     image: jerrettg/grocery-e-commerce-cart-service:latest
     ports:
-      - "8083:8083"
+      - "8080:8080"
     depends_on:
       - zipkin
 
@@ -67,7 +67,7 @@ services:
       dockerfile: Dockerfile
     image: jerrettg/grocery-e-commerce-order-service:latest
     ports:
-      - "8087:8087"
+      - "8080:8080"
     depends_on:
       - zipkin
 
@@ -79,7 +79,7 @@ services:
       dockerfile: Dockerfile
     image: jerrettg/grocery-e-commerce-api-gateway:latest
     ports:
-      - "8090:8090"
+      - "8080:8080"
     depends_on:
       - zipkin
 

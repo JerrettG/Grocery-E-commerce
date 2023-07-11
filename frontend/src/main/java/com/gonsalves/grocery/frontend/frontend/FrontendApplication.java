@@ -22,21 +22,20 @@ public class FrontendApplication {
         Stripe.apiKey = stripeApiKey;}
 
     @Bean
-    @LoadBalanced
     public RestTemplate restTemplate() {return new RestTemplate();}
 
     @Bean
-    @Profile(value = {"dev","test"})
+    @Profile(value = "test")
     public WebClient devAndTestWebClient() {
         return WebClient.builder()
                 .baseUrl("http://localhost:8090")
                 .build();
     }
     @Bean
-    @Profile(value = "prod")
-    public WebClient prodWebClient() {
+    @Profile(value = {"dev","prod"})
+    public WebClient prodWebClient(@Value("${cloud.gateway.base-url}") String backendBaseUrl) {
         return WebClient.builder()
-                .baseUrl("http://api-gateway-svc.default.svc.cluster.local")
+                .baseUrl(backendBaseUrl)
                 .build();
     }
 

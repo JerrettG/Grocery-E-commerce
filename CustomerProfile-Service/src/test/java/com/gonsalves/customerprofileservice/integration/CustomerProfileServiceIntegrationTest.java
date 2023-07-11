@@ -12,6 +12,7 @@ import com.gonsalves.customerprofileservice.repository.CustomerProfileRepository
 import com.gonsalves.customerprofileservice.repository.entity.CustomerProfileEntity;
 import com.gonsalves.customerprofileservice.repository.entity.Status;
 import com.gonsalves.customerprofileservice.service.CustomerProfileService;
+import com.gonsalves.customerprofileservice.service.model.AddressInfo;
 import net.andreinc.mockneat.MockNeat;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,14 +79,22 @@ public class CustomerProfileServiceIntegrationTest {
         String email = mockNeat.emails().valStr();
         String firstName = mockNeat.names().first().valStr();
         String lastName = mockNeat.names().last().valStr();
-
+        AddressInfo shippingInfo = new AddressInfo(
+                firstName,
+                lastName,
+                mockNeat.addresses().line1().valStr(),
+                mockNeat.addresses().line2().valStr(),
+                mockNeat.cities().us().valStr(),
+                mockNeat.usStates().valStr(),
+                mockNeat.ints().range(10000, 99999).valStr()
+        );
 
         CustomerProfileCreateRequest createRequest = new CustomerProfileCreateRequest(
                 userId,
                 email,
                 firstName,
                 lastName,
-                shippingAddress
+                shippingInfo
         );
 
         utility.customProfileServiceClient.createCustomerProfile(createRequest);
@@ -98,7 +107,13 @@ public class CustomerProfileServiceIntegrationTest {
                         jsonPath("$.firstName").value(firstName),
                         jsonPath("$.lastName").value(lastName),
                         jsonPath("$.email").value(email),
-                        jsonPath("$.shippingAddress").value(shippingAddress)
+                        jsonPath("$.shippingInfo.firstName").value(shippingInfo.getFirstName()),
+                        jsonPath("$.shippingInfo.lastName").value(shippingInfo.getLastName()),
+                        jsonPath("$.shippingInfo.addressFirstLine").value(shippingInfo.getAddressFirstLine()),
+                        jsonPath("$.shippingInfo.addressSecondLine").value(shippingInfo.getAddressSecondLine()),
+                        jsonPath("$.shippingInfo.city").value(shippingInfo.getCity()),
+                        jsonPath("$.shippingInfo.state").value(shippingInfo.getState()),
+                        jsonPath("$.shippingInfo.zipCode").value(shippingInfo.getZipCode())
                 );
     }
     @Test
@@ -121,14 +136,22 @@ public class CustomerProfileServiceIntegrationTest {
         String email = mockNeat.emails().valStr();
         String firstName = mockNeat.names().first().valStr();
         String lastName = mockNeat.names().last().valStr();
-        String shippingAddress = mockNeat.addresses().valStr();
+        AddressInfo shippingInfo = new AddressInfo(
+                firstName,
+                lastName,
+                mockNeat.addresses().line1().valStr(),
+                mockNeat.addresses().line2().valStr(),
+                mockNeat.cities().us().valStr(),
+                mockNeat.usStates().valStr(),
+                mockNeat.ints().range(10000, 99999).valStr()
+        );
 
         CustomerProfileCreateRequest createRequest = new CustomerProfileCreateRequest(
                 userId,
                 email,
                 firstName,
                 lastName,
-                shippingAddress
+                shippingInfo
         );
 
         //WHEN
@@ -143,7 +166,13 @@ public class CustomerProfileServiceIntegrationTest {
                         jsonPath("$.firstName").value(firstName),
                         jsonPath("$.lastName").value(lastName),
                         jsonPath("$.email").value(email),
-                        jsonPath("$.shippingAddress").value(shippingAddress)
+                          jsonPath("$.shippingInfo.firstName").value(shippingInfo.getFirstName()),
+                        jsonPath("$.shippingInfo.lastName").value(shippingInfo.getLastName()),
+                        jsonPath("$.shippingInfo.addressFirstLine").value(shippingInfo.getAddressFirstLine()),
+                        jsonPath("$.shippingInfo.addressSecondLine").value(shippingInfo.getAddressSecondLine()),
+                        jsonPath("$.shippingInfo.city").value(shippingInfo.getCity()),
+                        jsonPath("$.shippingInfo.state").value(shippingInfo.getState()),
+                        jsonPath("$.shippingInfo.zipCode").value(shippingInfo.getZipCode())
                 );
     }
     @Test
@@ -153,14 +182,22 @@ public class CustomerProfileServiceIntegrationTest {
         String email = mockNeat.emails().valStr();
         String firstName = mockNeat.names().first().valStr();
         String lastName = mockNeat.names().last().valStr();
-        String shippingAddress = mockNeat.addresses().valStr();
+        AddressInfo shippingInfo = new AddressInfo(
+                firstName,
+                lastName,
+                mockNeat.addresses().line1().valStr(),
+                mockNeat.addresses().line2().valStr(),
+                mockNeat.cities().us().valStr(),
+                mockNeat.usStates().valStr(),
+                mockNeat.ints().range(10000, 99999).valStr()
+        );
 
         CustomerProfileCreateRequest createRequest = new CustomerProfileCreateRequest(
                 userId,
                 email,
                 firstName,
                 lastName,
-                shippingAddress
+                shippingInfo
         );
 
         utility.customProfileServiceClient.createCustomerProfile(createRequest);
@@ -177,27 +214,43 @@ public class CustomerProfileServiceIntegrationTest {
         String email = mockNeat.emails().valStr();
         String firstName = mockNeat.names().first().valStr();
         String lastName = mockNeat.names().last().valStr();
-        String shippingAddress = mockNeat.addresses().valStr();
+        AddressInfo shippingInfo = new AddressInfo(
+                firstName,
+                lastName,
+                mockNeat.addresses().line1().valStr(),
+                mockNeat.addresses().line2().valStr(),
+                mockNeat.cities().us().valStr(),
+                mockNeat.usStates().valStr(),
+                mockNeat.ints().range(10000, 99999).valStr()
+        );
 
         CustomerProfileCreateRequest createRequest = new CustomerProfileCreateRequest(
                 userId,
                 email,
                 firstName,
                 lastName,
-                shippingAddress
+                shippingInfo
         );
 
         utility.customProfileServiceClient.createCustomerProfile(createRequest);
 
         String updatedEmail = mockNeat.emails().valStr();
-        String updatedShippingAddress = mockNeat.addresses().valStr();
+        AddressInfo updatedShippingInfo = new AddressInfo(
+                firstName,
+                lastName,
+                mockNeat.addresses().line1().valStr(),
+                mockNeat.addresses().line2().valStr(),
+                mockNeat.cities().us().valStr(),
+                mockNeat.usStates().valStr(),
+                mockNeat.ints().range(10000, 99999).valStr()
+        );
 
         CustomerProfileUpdateRequest updateRequest = new CustomerProfileUpdateRequest(
                 userId,
                 updatedEmail,
                 firstName,
                 lastName,
-                updatedShippingAddress
+                updatedShippingInfo
         );
         //WHEN
         utility.customProfileServiceClient.updateCustomerProfile(updateRequest)
@@ -211,7 +264,13 @@ public class CustomerProfileServiceIntegrationTest {
                         jsonPath("$.email").value(updatedEmail),
                         jsonPath("$.firstName").value(firstName),
                         jsonPath("$.lastName").value(lastName),
-                        jsonPath("$.shippingAddress").value(updatedShippingAddress)
+                        jsonPath("$.shippingInfo.firstName").value(updatedShippingInfo.getFirstName()),
+                        jsonPath("$.shippingInfo.lastName").value(updatedShippingInfo.getLastName()),
+                        jsonPath("$.shippingInfo.addressFirstLine").value(updatedShippingInfo.getAddressFirstLine()),
+                        jsonPath("$.shippingInfo.addressSecondLine").value(updatedShippingInfo.getAddressSecondLine()),
+                        jsonPath("$.shippingInfo.city").value(updatedShippingInfo.getCity()),
+                        jsonPath("$.shippingInfo.state").value(updatedShippingInfo.getState()),
+                        jsonPath("$.shippingInfo.zipCode").value(updatedShippingInfo.getZipCode())
                 );
     }
 
@@ -222,14 +281,22 @@ public class CustomerProfileServiceIntegrationTest {
         String updatedEmail = mockNeat.emails().valStr();
         String firstName = mockNeat.names().first().valStr();
         String lastName = mockNeat.names().last().valStr();
-        String updatedShippingAddress = mockNeat.addresses().valStr();
+        AddressInfo updatedShippingInfo = new AddressInfo(
+                firstName,
+                lastName,
+                mockNeat.addresses().line1().valStr(),
+                mockNeat.addresses().line2().valStr(),
+                mockNeat.cities().us().valStr(),
+                mockNeat.usStates().valStr(),
+                mockNeat.ints().range(10000, 99999).valStr()
+        );
 
         CustomerProfileUpdateRequest updateRequest = new CustomerProfileUpdateRequest(
                 invalidUserId,
                 updatedEmail,
                 firstName,
                 lastName,
-                updatedShippingAddress
+                updatedShippingInfo
         );
         //WHEN
         utility.customProfileServiceClient.updateCustomerProfile(updateRequest)
@@ -244,14 +311,22 @@ public class CustomerProfileServiceIntegrationTest {
         String email = mockNeat.emails().valStr();
         String firstName = mockNeat.names().first().valStr();
         String lastName = mockNeat.names().last().valStr();
-        String shippingAddress = mockNeat.addresses().valStr();
+        AddressInfo shippingInfo = new AddressInfo(
+                firstName,
+                lastName,
+                mockNeat.addresses().line1().valStr(),
+                mockNeat.addresses().line2().valStr(),
+                mockNeat.cities().us().valStr(),
+                mockNeat.usStates().valStr(),
+                mockNeat.ints().range(10000, 99999).valStr()
+        );
 
         CustomerProfileCreateRequest createRequest = new CustomerProfileCreateRequest(
                 userId,
                 email,
                 firstName,
                 lastName,
-                shippingAddress
+                shippingInfo
         );
 
         utility.customProfileServiceClient.createCustomerProfile(createRequest);
@@ -274,14 +349,22 @@ public class CustomerProfileServiceIntegrationTest {
         String email = mockNeat.emails().valStr();
         String firstName = mockNeat.names().first().valStr();
         String lastName = mockNeat.names().last().valStr();
-        String shippingAddress = mockNeat.addresses().valStr();
+        AddressInfo shippingInfo = new AddressInfo(
+                firstName,
+                lastName,
+                mockNeat.addresses().line1().valStr(),
+                mockNeat.addresses().line2().valStr(),
+                mockNeat.cities().us().valStr(),
+                mockNeat.usStates().valStr(),
+                mockNeat.ints().range(10000, 99999).valStr()
+        );
 
         CustomerProfileCreateRequest createRequest = new CustomerProfileCreateRequest(
                 userId,
                 email,
                 firstName,
                 lastName,
-                shippingAddress
+                shippingInfo
         );
 
         utility.customProfileServiceClient.createCustomerProfile(createRequest);

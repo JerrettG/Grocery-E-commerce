@@ -5,10 +5,10 @@ COPY .mvn .mvn
 COPY pom.xml .
 COPY src src
 RUN ./mvnw package
-COPY target/*.jar productEntity-service.jar
+COPY target/*.jar product-service.jar
 
 FROM openjdk:17
-COPY --from=buildstage /Product-Service/productEntity-service.jar .
-ENTRYPOINT ["java","-jar","-Dspring.profiles.active=prod","/productEntity-service.jar"]
+COPY --from=buildstage /Product-Service/product-service.jar .
+ENTRYPOINT ["java","-jar","-Dspring.profiles.active=dev","/product-service.jar"]
 
-EXPOSE 8081
+EXPOSE 8080

@@ -1,33 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: user-interface-app
+  name: frontend-web-deployment
   labels:
-    app: user-interface-app
+    app: frontend-web
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: user-interface-app
+      app: frontend-web
   template:
     metadata:
       labels:
-        app: user-interface-app
+        app: frontend-web
     spec:
       containers:
-        - name: user-interface-app
-          image: docker.io/jerrettg/grocery-e-commerce-user-interface:latest
+        - name: frontend-web
+          image: docker.io/jerrettg/grocery-e-commerce-frontend-web:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 8084
+            - containerPort: 8080
           env:
-            - name: GATEWAY_URL
-              value: api-gateway-svc.default.svc.cluster.local
-            - name: ZIPKIN_SERVER_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: gateway-cm
-                  key: zipkin_service_url
             - name: STRIPE_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -53,34 +46,33 @@ spec:
                 secretKeyRef:
                   name: secret
                   key: auth-client-secret
+            - name: AUTH_ISSUER_URI
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: auth-issuer-uri
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: user-interface-svc
+  name: frontend-web-svc
 spec:
   selector:
-    app: user-interface-app
-  type: ClusterIP
+    app: frontend-web
   ports:
-    - port: 8084
-      targetPort: 8084
-      protocol: TCP
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: user-interface-lb
-spec:
-  selector:
-    app: user-interface-app
+    - protocol: TCP
+      port: 8080
+      targetPort:
   type: LoadBalancer
-  ports:
-    - name: frontend
-      port: 8084
-      targetPort: 8084
-      protocol: TCP
-    - name: request
-      port: 80
-      targetPort: 8084
-      protocol: TCP
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: frontend-web-svc
+#spec:
+#  type: NodePort
+#  selector:
+#    app: frontend-web
+#  ports:
+#    - protocol: TCP
+#      port: 80
+#      targetPort: 8080

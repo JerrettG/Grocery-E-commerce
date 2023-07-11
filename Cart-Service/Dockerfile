@@ -9,6 +9,6 @@ COPY target/*.jar cartResponse-service.jar
 
 FROM openjdk:17
 COPY --from=buildstage /Cart-Service/cartResponse-service.jar .
-ENTRYPOINT ["java","-jar","-Dspring.profiles.active=prod","/cartResponse-service.jar"]
+ENTRYPOINT ["java","-jar","-Dspring.profiles.active=dev","/cartResponse-service.jar"]
 
-EXPOSE 8083
+EXPOSE 8080

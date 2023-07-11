@@ -1,31 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: order-service-app
+  name: order-service-deployment
   labels:
-    app: order-service-app
+    app: order-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: order-service-app
+      app: order-service
   template:
     metadata:
       labels:
-        app: order-service-app
+        app: order-service
     spec:
       containers:
         - name: order-service-app
           image: docker.io/jerrettg/grocery-e-commerce-order-service:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 8087
+            - containerPort: 8080
           env:
-            - name: ZIPKIN_SERVER_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: gateway-cm
-                  key: zipkin_service_url
             - name: GROCERY_AWS_REGION
               valueFrom:
                 secretKeyRef:
@@ -48,7 +43,8 @@ metadata:
   name: order-service-svc
 spec:
   selector:
-    app: order-service-app
+    app: order-service
+  type: ClusterIP
   ports:
     - port: 80
-      targetPort: 8087
+      targetPort: 8080

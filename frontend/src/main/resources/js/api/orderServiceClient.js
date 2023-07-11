@@ -28,7 +28,7 @@ export default class OrderServiceClient extends BaseClass {
     }
     async getAllOrdersForUserId(userId, errorCallback) {
         try {
-            const response = await this.client.get(`/api/v1/orderService//order/all/user/${userId}`);
+            const response = await this.client.get(`/api/v1/orderService/order/all/user/${userId}`);
             return response.data;
         } catch (error) {
             this.handleError('getAllOrdersForUserId', error, errorCallback)
