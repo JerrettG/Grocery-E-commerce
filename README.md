@@ -20,8 +20,9 @@ Grocery E-commerce website built using Spring and made deployable to a Kubernete
 - [x] Add/Remove products to/from cart with auto-increment quantity for items already existing in the cart
 - [x] Place and view orders with full checkout experience and payment handling by Stripe
 - [x] Fuzzy search for products
-## In progress:
 - [x] Enabling distributed caching for individual services via Redis using the Jedis library
+## In progress:
+- [ ] Implement AWS OpenSearch for searching through product catalog.
 - [ ] Multiple saved addresses for shipping and billing
 - [ ] Creation of another project that uses existing Order Service API to create an order fulfillment service that updates status and contents of user orders
 
